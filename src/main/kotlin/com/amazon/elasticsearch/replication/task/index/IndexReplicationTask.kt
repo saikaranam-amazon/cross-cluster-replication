@@ -101,8 +101,8 @@ class IndexReplicationTask(id: Long, type: String, action: String, description: 
         followingTaskState = FollowingState(emptyMap())
         currentTaskState = initialState as IndexReplicationState
         while (scope.isActive) {
-            log.error("reaching here 10 "+ currentTaskState + " and state "+ currentTaskState.state + "  and "+ currentTaskState)
-            log.error("reaching here 13 "+ followingTaskState + " and state "+ followingTaskState.state)
+            //log.error("reaching here 10 "+ currentTaskState + " and state "+ currentTaskState.state + "  and "+ currentTaskState)
+            //log.error("reaching here 13 "+ followingTaskState + " and state "+ followingTaskState.state)
             val newState = when (currentTaskState.state) {
                 ReplicationState.INIT -> {
                     addListenerToInterruptTask()

@@ -15,8 +15,6 @@
 
 package com.amazon.elasticsearch.replication.action.changes
 
-import com.amazon.elasticsearch.replication.action.repository.GetFileChunkAction
-import com.amazon.elasticsearch.replication.repository.RemoteClusterRepository
 import com.amazon.elasticsearch.replication.util.completeWith
 import com.amazon.elasticsearch.replication.util.coroutineContext
 import com.amazon.elasticsearch.replication.util.waitForGlobalCheckpoint
@@ -70,6 +68,8 @@ class TransportGetChangesAction @Inject constructor(threadPool: ThreadPool, clus
             // TODO: Figure out if we need to acquire a primary permit here
             listener.completeWith {
                 val indexShard = indicesService.indexServiceSafe(shardId.index).getShard(shardId.id)
+                log.error("reaching here 743 global check point "+ shardId + " -- "+ shardId.hashCode() +
+                        " "+ shardId.id() + " "+shardId.index.name + " "+ shardId.index.uuid)
                 log.error("reaching here 16 global check point "+ indexShard.lastSyncedGlobalCheckpoint  + " -- "+ request.fromSeqNo + " -- "+ indexShard.lastSyncedGlobalCheckpoint)
                 if (indexShard.lastSyncedGlobalCheckpoint < request.fromSeqNo) {
                     // There are no new operations to sync. Do a long poll and wait for GlobalCheckpoint to advance. If
