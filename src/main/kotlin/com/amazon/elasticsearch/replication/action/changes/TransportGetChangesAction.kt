@@ -16,11 +16,13 @@
 package com.amazon.elasticsearch.replication.action.changes
 
 import com.amazon.elasticsearch.replication.action.repository.GetFileChunkAction
+import com.amazon.elasticsearch.replication.repository.RemoteClusterRepository
 import com.amazon.elasticsearch.replication.util.completeWith
 import com.amazon.elasticsearch.replication.util.coroutineContext
 import com.amazon.elasticsearch.replication.util.waitForGlobalCheckpoint
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.apache.logging.log4j.LogManager
 import org.elasticsearch.ElasticsearchTimeoutException
 import org.elasticsearch.action.ActionListener
 import org.elasticsearch.action.support.ActionFilters
@@ -55,6 +57,7 @@ class TransportGetChangesAction @Inject constructor(threadPool: ThreadPool, clus
 
     companion object {
         val WAIT_FOR_NEW_OPS_TIMEOUT = TimeValue.timeValueMinutes(1)!!
+        private val log = LogManager.getLogger(TransportGetChangesAction::class.java)
     }
 
     override fun shardOperation(request: GetChangesRequest, shardId: ShardId): GetChangesResponse {
@@ -67,6 +70,7 @@ class TransportGetChangesAction @Inject constructor(threadPool: ThreadPool, clus
             // TODO: Figure out if we need to acquire a primary permit here
             listener.completeWith {
                 val indexShard = indicesService.indexServiceSafe(shardId.index).getShard(shardId.id)
+                log.error("reaching here 16 global check point "+ indexShard.lastSyncedGlobalCheckpoint  + " -- "+ request.fromSeqNo + " -- "+ indexShard.lastSyncedGlobalCheckpoint)
                 if (indexShard.lastSyncedGlobalCheckpoint < request.fromSeqNo) {
                     // There are no new operations to sync. Do a long poll and wait for GlobalCheckpoint to advance. If
                     // the checkpoint doesn't advance by the timeout this throws an ESTimeoutException which the caller

@@ -17,6 +17,8 @@ package com.amazon.elasticsearch.replication.rest
 
 import com.amazon.elasticsearch.replication.action.index.ReplicateIndexAction
 import com.amazon.elasticsearch.replication.action.index.ReplicateIndexRequest
+import com.amazon.elasticsearch.replication.action.repository.TransportGetFileChunkAction
+import org.apache.logging.log4j.LogManager
 import org.elasticsearch.client.node.NodeClient
 import org.elasticsearch.rest.BaseRestHandler
 import org.elasticsearch.rest.BaseRestHandler.RestChannelConsumer
@@ -28,6 +30,10 @@ import java.io.IOException
 
 class ReplicateIndexHandler : BaseRestHandler() {
 
+    companion object {
+        private val log = LogManager.getLogger(ReplicateIndexHandler::class.java)
+    }
+
     override fun routes(): List<RestHandler.Route> {
         return listOf(RestHandler.Route(RestRequest.Method.PUT, "/_opendistro/_replication/{index}/_start"))
     }
@@ -38,10 +44,16 @@ class ReplicateIndexHandler : BaseRestHandler() {
 
     @Throws(IOException::class)
     override fun prepareRequest(request: RestRequest, client: NodeClient): RestChannelConsumer {
+        log.error("reaching here 1 ")
+        log.error("reaching here 2 "+ request.path())
+        log.error("reaching here 5 "+ request.headers)
+        log.error("reaching here 6 "+ request.params())
         request.contentOrSourceParamParser().use { parser ->
             val followerIndex = request.param("index")
             val followIndexRequest = ReplicateIndexRequest.fromXContent(parser, followerIndex)
             followIndexRequest.waitForRestore = request.paramAsBoolean("wait_for_restore", false)
+            log.error("reaching here 3 "+ followIndexRequest)
+            log.error("reaching here 12 "+ request.paramAsBoolean("wait_for_restore", false))
             return RestChannelConsumer {
                 channel: RestChannel? -> client.admin().cluster()
                     .execute(ReplicateIndexAction.INSTANCE, followIndexRequest, RestToXContentListener(channel))

@@ -46,12 +46,12 @@ class TransportReplicateIndexAction @Inject constructor(transportService: Transp
     }
 
     override fun doExecute(task: Task, request: ReplicateIndexRequest, listener: ActionListener<ReplicateIndexResponse>) {
-        log.trace("Starting replication for ${request.remoteCluster}:${request.remoteIndex} -> ${request.followerIndex}")
+        log.error("Starting replication for ${request.remoteCluster}:${request.remoteIndex} -> ${request.followerIndex}")
 
         // Captures the security context and triggers relevant operation on the master
         try {
             val user = SecurityContext.fromSecurityThreadContext(threadPool.threadContext)
-            log.debug("Obtained security context - $user")
+            log.error("Obtained security context - $user")
             val req = ReplicateIndexMasterNodeRequest(user, request)
             client.execute(ReplicateIndexMasterNodeAction.INSTANCE, req, object: ActionListener<AcknowledgedResponse>{
                 override fun onFailure(e: Exception) {

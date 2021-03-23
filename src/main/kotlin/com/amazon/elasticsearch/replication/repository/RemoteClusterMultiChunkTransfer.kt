@@ -25,6 +25,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.elasticsearch.action.ActionListener
 import org.elasticsearch.client.Client
@@ -61,6 +62,8 @@ class RemoteClusterMultiChunkTransfer(val logger: Logger,
 
     init {
         // Add all the available files to show the recovery status
+        log.error("reaching here 17 " + remoteFiles.size)
+        log.error("reaching here 18 "+ recoveryState.index)
         for(fileMetadata in remoteFiles) {
             recoveryState.index.addFileDetail(fileMetadata.name(), fileMetadata.length(), false)
         }
@@ -68,6 +71,7 @@ class RemoteClusterMultiChunkTransfer(val logger: Logger,
     }
 
     companion object {
+        private val log = LogManager.getLogger(RemoteClusterMultiChunkTransfer::class.java)
         const val RESTORE_SHARD_TEMP_FILE_PREFIX = "CLUSTER_REPO_TEMP_"
     }
 
@@ -86,13 +90,15 @@ class RemoteClusterMultiChunkTransfer(val logger: Logger,
 
         launch(Dispatchers.IO + remoteClusterClient.threadPool().coroutineContext()) {
             try {
+                log.error("reaching here 19 "+ recoveryState.index)
                 val response = remoteClusterClient.suspendExecute(GetFileChunkAction.INSTANCE, getFileChunkRequest)
-                logger.debug("Filename: ${request.storeFileMetadata.name()}, " +
+                logger.error("Filename: ${request.storeFileMetadata.name()}, " +
                         "response_size: ${response.data.length()}, response_offset: ${response.offset}")
                 mutex.withLock {
                     multiFileWriter.writeFileChunk(response.storeFileMetadata, response.offset, response.data, request.lastChunk())
                     listener.onResponse(null)
                 }
+                log.error("reaching here 20 "+ recoveryState.index)
             } catch (e: Exception) {
                 logger.error("Failed to fetch file chunk for ${request.storeFileMetadata.name()} with offset ${request.offset}: $e")
                 listener.onFailure(e)
