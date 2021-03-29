@@ -42,6 +42,7 @@ import org.elasticsearch.common.logging.Loggers
 import org.elasticsearch.index.seqno.RetentionLeaseActions
 import org.elasticsearch.index.shard.ShardId
 import org.elasticsearch.index.shard.ShardNotFoundException
+import org.elasticsearch.index.translog.Translog
 import org.elasticsearch.persistent.PersistentTaskState
 import org.elasticsearch.persistent.PersistentTasksNodeService
 import org.elasticsearch.tasks.TaskId
@@ -80,7 +81,7 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
     }
 
     override suspend fun cleanup() {
-        retentionLeaseHelper.removeRetentionLease(remoteShardId, followerShardId)
+        //retentionLeaseHelper.removeRetentionLease(remoteShardId, followerShardId)
         /* This is to minimise overhead of calling an additional listener as
          * it continues to be called even after the task is completed.
          */
@@ -110,7 +111,7 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
     private suspend fun replicate() {
         updateTaskState(FollowingState)
         // TODO: Acquire retention lease prior to initiating remote recovery
-        retentionLeaseHelper.addRetentionLease(remoteShardId, RetentionLeaseActions.RETAIN_ALL, followerShardId)
+        //retentionLeaseHelper.addRetentionLease(remoteShardId, RetentionLeaseActions.RETAIN_ALL, followerShardId)
         val followerIndexService = indicesService.indexServiceSafe(followerShardId.index)
         val indexShard = followerIndexService.getShard(followerShardId.id)
         // After restore, persisted localcheckpoint is matched with maxSeqNo.
@@ -130,7 +131,18 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
             rateLimiter.acquire()
             try {
                 val changesResponse = getChanges(node, seqNo)
+                val firstSeqNo = changesResponse.changes.firstOrNull()?.seqNo() ?: -1
+                val lastSeqNo = changesResponse.changes.lastOrNull()?.seqNo() ?: -1
+                var nextSeqNo = firstSeqNo
+                var uniqueEntries = 0
+                changesResponse.changes.forEach {op->
+                    if(op.seqNo() == nextSeqNo && op.opType().name == Translog.Operation.Type.INDEX.name) {
+                        uniqueEntries++
+                        nextSeqNo += 1L
+                    }
+                }
                 log.info("Got ${changesResponse.changes.size} changes starting from seqNo: $seqNo")
+                log.info("firstSeqNo: $firstSeqNo, lastSeqNo: $lastSeqNo, uniqueEntries: $uniqueEntries")
                 sequencer.send(changesResponse)
                 seqNo = changesResponse.changes.lastOrNull()?.seqNo()?.inc() ?: seqNo
             } catch (e: ElasticsearchTimeoutException) {
@@ -138,7 +150,7 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
                 rateLimiter.release()
                 continue
             }
-            retentionLeaseHelper.renewRetentionLease(remoteShardId, seqNo, followerShardId)
+            //retentionLeaseHelper.renewRetentionLease(remoteShardId, seqNo, followerShardId)
         }
         sequencer.close()
     }

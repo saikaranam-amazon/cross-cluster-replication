@@ -16,6 +16,7 @@
 package com.amazon.elasticsearch.replication.action.changes
 
 import com.amazon.elasticsearch.replication.action.repository.GetFileChunkAction
+import com.amazon.elasticsearch.replication.seqno.RemoteClusterTranslogService
 import com.amazon.elasticsearch.replication.util.completeWith
 import com.amazon.elasticsearch.replication.util.coroutineContext
 import com.amazon.elasticsearch.replication.util.waitForGlobalCheckpoint
@@ -44,7 +45,8 @@ import kotlin.math.min
 class TransportGetChangesAction @Inject constructor(threadPool: ThreadPool, clusterService: ClusterService,
                                                     transportService: TransportService, actionFilters: ActionFilters,
                                                     indexNameExpressionResolver: IndexNameExpressionResolver,
-                                                    private val indicesService: IndicesService) :
+                                                    private val indicesService: IndicesService,
+                                                    private val translogService: RemoteClusterTranslogService) :
     TransportSingleShardAction<GetChangesRequest, GetChangesResponse>(
         GetChangesAction.NAME, threadPool, clusterService, transportService, actionFilters,
         indexNameExpressionResolver, ::GetChangesRequest, ThreadPool.Names.SEARCH) {
@@ -84,6 +86,10 @@ class TransportGetChangesAction @Inject constructor(threadPool: ThreadPool, clus
 
                 // At this point lastSyncedGlobalCheckpoint is at least fromSeqNo
                 val toSeqNo = min(indexShard.lastSyncedGlobalCheckpoint, request.toSeqNo)
+                val ops = translogService.getHistoryOfOperations(indexShard, request.fromSeqNo, toSeqNo)
+                GetChangesResponse(ops, request.fromSeqNo, indexShard.maxSeqNoOfUpdatesOrDeletes)
+
+                /*
                 indexShard.newChangesSnapshot("odr", request.fromSeqNo, toSeqNo, true).use { snapshot ->
                     val ops = ArrayList<Translog.Operation>(snapshot.totalOperations())
                     var op = snapshot.next()
@@ -93,6 +99,7 @@ class TransportGetChangesAction @Inject constructor(threadPool: ThreadPool, clus
                     }
                     GetChangesResponse(ops, request.fromSeqNo, indexShard.maxSeqNoOfUpdatesOrDeletes)
                 }
+                 */
             }
         }
     }

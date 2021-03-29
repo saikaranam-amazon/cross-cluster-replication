@@ -102,6 +102,7 @@ import java.util.Optional
 import java.util.function.Supplier
 import com.amazon.elasticsearch.replication.action.index.block.UpdateIndexBlockAction
 import com.amazon.elasticsearch.replication.action.index.block.TransportUpddateIndexBlockAction
+import com.amazon.elasticsearch.replication.seqno.RemoteClusterTranslogService
 
 internal class ReplicationPlugin : Plugin(), ActionPlugin, PersistentTaskPlugin, RepositoryPlugin, EnginePlugin {
 
@@ -112,7 +113,7 @@ internal class ReplicationPlugin : Plugin(), ActionPlugin, PersistentTaskPlugin,
         const val REPLICATION_EXECUTOR_NAME = "replication"
         val REPLICATED_INDEX_SETTING = Setting.simpleString("index.opendistro.replicated",
             Setting.Property.InternalIndex, Setting.Property.IndexScope)
-        val REPLICATION_CHANGE_BATCH_SIZE = Setting.intSetting("opendistro.replication.ops_batch_size", 512, 16,
+        val REPLICATION_CHANGE_BATCH_SIZE = Setting.intSetting("opendistro.replication.ops_batch_size", 1000000, 16,
             Setting.Property.Dynamic, Setting.Property.NodeScope)
     }
 
@@ -129,7 +130,8 @@ internal class ReplicationPlugin : Plugin(), ActionPlugin, PersistentTaskPlugin,
     }
 
     override fun getGuiceServiceClasses(): Collection<Class<out LifecycleComponent>> {
-        return listOf(Injectables::class.java, RemoteClusterRestoreLeaderService::class.java)
+        return listOf(Injectables::class.java, RemoteClusterRestoreLeaderService::class.java,
+                RemoteClusterTranslogService::class.java)
     }
 
     override fun getActions(): List<ActionHandler<out ActionRequest, out ActionResponse>> {

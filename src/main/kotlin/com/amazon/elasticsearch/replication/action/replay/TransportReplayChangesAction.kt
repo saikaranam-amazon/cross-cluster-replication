@@ -113,22 +113,36 @@ class TransportReplayChangesAction @Inject constructor(settings: Settings, trans
     suspend fun performOnPrimary(request: ReplayChangesRequest, primaryShard: IndexShard)
         : WritePrimaryResult<ReplayChangesRequest, ReplayChangesResponse> {
 
-        checkIfIndexBlockedWithLevel(clusterService, request.index(), ClusterBlockLevel.WRITE)
+        //checkIfIndexBlockedWithLevel(clusterService, request.index(), ClusterBlockLevel.WRITE)
         var location: Translog.Location? = null
         request.changes.asSequence().map {
             it.withPrimaryTerm(primaryShard.operationPrimaryTerm)
         }.forEach { op ->
+            /*
             if(primaryShard.maxSeqNoOfUpdatesOrDeletes < request.maxSeqNoOfUpdatesOrDeletes) {
                 primaryShard.advanceMaxSeqNoOfUpdatesOrDeletes(request.maxSeqNoOfUpdatesOrDeletes)
             }
-            var result = primaryShard.applyTranslogOperation(op, Engine.Operation.Origin.PRIMARY)
+            */
+            var eachOp = op
+
+            if(op.opType() == Translog.Operation.Type.INDEX) {
+                eachOp = op as Translog.Index
+                eachOp = Translog.Index(eachOp.docType(), eachOp.id(), eachOp.seqNo(),
+                        eachOp.primaryTerm(), eachOp.version(), eachOp.source().toBytesRef().bytes, eachOp.routing(), -1)
+            }
+
+            var result = primaryShard.applyTranslogOperation(eachOp, Engine.Operation.Origin.PRIMARY)
             if (result.resultType == Engine.Result.Type.MAPPING_UPDATE_REQUIRED) {
                 waitForMappingUpdate {
                     // fetch mappings from the remote cluster when applying on PRIMARY...
                     syncRemoteMapping(request.remoteCluster, request.remoteIndex, request.shardId()!!.indexName,
-                        op.docType())
+                            eachOp.docType())
                 }
-                result = primaryShard.applyTranslogOperation(op, Engine.Operation.Origin.PRIMARY)
+                result = primaryShard.applyTranslogOperation(eachOp, Engine.Operation.Origin.PRIMARY)
+            }
+
+            if (result.resultType == Engine.Result.Type.FAILURE) {
+                log.error("Failed to index doc ${op.seqNo()} with ${result.failure}")
             }
 
             location = syncOperationResultOrThrow(result, location)
@@ -143,7 +157,7 @@ class TransportReplayChangesAction @Inject constructor(settings: Settings, trans
     suspend fun performOnSecondary(request: ReplayChangesRequest, replicaShard: IndexShard)
         : WriteReplicaResult<ReplayChangesRequest> {
 
-        checkIfIndexBlockedWithLevel(clusterService, request.index(), ClusterBlockLevel.WRITE)
+        //checkIfIndexBlockedWithLevel(clusterService, request.index(), ClusterBlockLevel.WRITE)
         var location: Translog.Location? = null
         request.changes.asSequence().map {
             it.withPrimaryTerm(replicaShard.operationPrimaryTerm)
