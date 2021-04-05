@@ -87,7 +87,7 @@ class TransportGetChangesAction @Inject constructor(threadPool: ThreadPool, clus
                 // At this point lastSyncedGlobalCheckpoint is at least fromSeqNo
                 val toSeqNo = min(indexShard.lastSyncedGlobalCheckpoint, request.toSeqNo)
                 val ops = translogService.getHistoryOfOperations(indexShard, request.fromSeqNo, toSeqNo)
-                GetChangesResponse(ops, request.fromSeqNo, indexShard.maxSeqNoOfUpdatesOrDeletes)
+                GetChangesResponse(ops, request.fromSeqNo, indexShard.maxSeqNoOfUpdatesOrDeletes, indexShard.lastSyncedGlobalCheckpoint)
 
                 /*
                 indexShard.newChangesSnapshot("odr", request.fromSeqNo, toSeqNo, true).use { snapshot ->
