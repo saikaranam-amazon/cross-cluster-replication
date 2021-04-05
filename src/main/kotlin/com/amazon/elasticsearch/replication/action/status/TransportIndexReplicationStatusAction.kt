@@ -39,25 +39,30 @@ class TransportIndexReplicationStatusAction  @Inject constructor(threadPool: Thr
         log.error("remove this log 32 urier "+ (request?.indexName ?: null))
         val shards = clusterService.state().routingTable.indicesRouting().get((request?.indexName ?: null)).shards()
         val replayDetailsList: MutableList<ReplayDetails> = mutableListOf<ReplayDetails>()
+        val rerstoreDetailsList: MutableList<RestoreDetails> = mutableListOf<RestoreDetails>()
         log.error("remove this log 333434 urier " + shards)
         shards.forEach {
             val shardid = it.value.shardId
             val indexShard =  indicesService.indexServiceSafe(shardid.index).getShard( shardid.id)
-            log.error("reaching here 1616 global check point "+ shardid + "  "+ indexShard.lastSyncedGlobalCheckpoint  + " -- "+  " -- "+ indexShard.lastSyncedGlobalCheckpoint + " "+ indexShard.recoveryState().index)
-            replayDetailsList.add( ReplayDetails(true,false))
+            //log.error("reaching here 1616 global check point "+ shardid + "  "+ indexShard.lastSyncedGlobalCheckpoint  + " -- "+  " -- "+ indexShard.lastSyncedGlobalCheckpoint + " "+ indexShard.recoveryState().index)
+            log.error("reaching here 1616 repeat global check point "+ shardid + "  "+ indexShard.lastSyncedGlobalCheckpoint  + " -- "+  " -- "+ indexShard.lastKnownGlobalCheckpoint + " "+ indexShard.recoveryState().index)
+
+            var indexState = indexShard.recoveryState().index
+
+            rerstoreDetailsList.add(RestoreDetails(indexState.totalBytes(), indexState.recoveredBytes(),
+                    indexState.recoveredBytesPercent(), indexState.totalFileCount(),indexState.recoveredFileCount(),
+                    indexState.recoveredFilesPercent(),indexState.startTime(),indexState.time(),shardid
+            ))
+            log.error("reaching here 1616 repeat global check  2"+ indexState.time() + " " +  indexState.startTime())
+
+
+            var seqNo = indexShard.localCheckpoint + 1
+            replayDetailsList.add(ReplayDetails(indexShard.lastSyncedGlobalCheckpoint,indexShard.lastSyncedGlobalCheckpoint,seqNo,shardid))
         }
 
 
-//        if (request != null) {
-//            log.error("remove this log 33 new "+ shardId)
-//        }
-//        log.error("remove this log 35 new "+ shardId)
-//        if (shardId != null) {
-//            log.error("remove this log 34 neeww "+ indicesService.indexServiceSafe(shardId?.index).getShard(shardId.id))
-//        }
-//        log.error("remove this log 35")
         if (listener != null) {
-            listener.onResponse(StatusResponse(false,replayDetailsList))
+            listener.onResponse(StatusResponse(false,rerstoreDetailsList,replayDetailsList))
         }
     }
 
