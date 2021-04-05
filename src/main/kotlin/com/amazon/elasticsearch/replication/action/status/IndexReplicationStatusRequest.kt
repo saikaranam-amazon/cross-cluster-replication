@@ -23,10 +23,8 @@ class IndexReplicationStatusRequest : SingleShardRequest<IndexReplicationStatusR
         indexName = inp.readString()
     }
 
-
     companion object {
         private val log = LogManager.getLogger(IndexReplicationStatusRequest::class.java)
-
         private val PARSER = ObjectParser<IndexReplicationStatusRequest, Void>("IndexReplicationStatusRequestParser") {
             IndexReplicationStatusRequest()
         }
@@ -45,8 +43,6 @@ class IndexReplicationStatusRequest : SingleShardRequest<IndexReplicationStatusR
     override fun validate(): ActionRequestValidationException? {
         return null
     }
-
-
 
     override fun indices(): Array<String> {
         return arrayOf(indexName)

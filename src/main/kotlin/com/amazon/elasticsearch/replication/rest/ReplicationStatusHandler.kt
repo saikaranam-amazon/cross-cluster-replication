@@ -36,7 +36,6 @@ class ReplicationStatusHandler : BaseRestHandler() {
                                 client.admin().cluster()
                                         .execute(IndexReplicationStatusAction.INSTANCE, indexReplicationStatusRequest, RestToXContentListener(channel))
                             }
-
                 }
     }
 

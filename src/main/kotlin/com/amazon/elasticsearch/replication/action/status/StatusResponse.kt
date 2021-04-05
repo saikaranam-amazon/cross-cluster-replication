@@ -33,7 +33,6 @@ class StatusResponse(val acknowledged: String,val restoreDetailsList: List<Resto
     }
 }
 
-
 class RestoreDetails(val totalBytes : Long, val recoveredBytes : Long, val recovereyPercentage : Float,
                      val totalFiles : Int, val recoveredFiles : Int, val fileRecovereyPercentage : Float,
                      val startTime : Long, val time : Long, val shardId: ShardId) : ActionResponse(), ToXContentObject {
@@ -49,7 +48,6 @@ class RestoreDetails(val totalBytes : Long, val recoveredBytes : Long, val recov
     private val STARTTIME = ParseField("start_time")
     private val RUNNINGTIME = ParseField("running_time")
     private val SHARDID = ParseField("shard_id")
-
 
     override fun writeTo(out: StreamOutput) {
         out.writeLong(totalBytes)
@@ -77,7 +75,6 @@ class RestoreDetails(val totalBytes : Long, val recoveredBytes : Long, val recov
         return builder
     }
 }
-
 
 class ReplayDetails(val lastSyncedGlobalCheckpoint: Long,val lastKnownGlobalCheckpoint : Long,val seqNo : Long,
                     val shardId: ShardId): ActionResponse(), ToXContentObject {

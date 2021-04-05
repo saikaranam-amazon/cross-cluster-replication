@@ -1,6 +1,5 @@
 package com.amazon.elasticsearch.replication.action.status
 
-
 import org.apache.logging.log4j.LogManager
 import org.elasticsearch.action.ActionListener
 import org.elasticsearch.action.support.ActionFilters
@@ -77,6 +76,5 @@ class TransportIndexReplicationStatusAction @Inject constructor(threadPool: Thre
     override fun shards(state: ClusterState?, request: InternalRequest?): ShardsIterator? {
         return null
     }
-
 
 }

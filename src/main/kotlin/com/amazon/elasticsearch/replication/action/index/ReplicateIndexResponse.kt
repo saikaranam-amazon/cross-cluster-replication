@@ -19,7 +19,7 @@ import org.elasticsearch.action.support.master.AcknowledgedResponse
 import org.elasticsearch.common.io.stream.StreamInput
 import org.elasticsearch.common.io.stream.StreamOutput
 
-class ReplicateIndexResponse(acknowledged: Boolean): AcknowledgedResponse(acknowledged) {
+class ReplicateIndexResponse(acknowledged: Boolean) : AcknowledgedResponse(acknowledged) {
     constructor(inp: StreamInput) : this(inp.readBoolean())
 
     override fun writeTo(out: StreamOutput) {
