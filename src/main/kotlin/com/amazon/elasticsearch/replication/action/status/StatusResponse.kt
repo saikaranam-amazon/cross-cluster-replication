@@ -9,28 +9,23 @@ import org.elasticsearch.common.xcontent.ToXContentObject
 import org.elasticsearch.common.xcontent.XContentBuilder
 import org.elasticsearch.index.shard.ShardId
 
-class StatusResponse(val acknowledged: Boolean,val restoreDetailsList: List<RestoreDetails>,val replayDetailsList: List<ReplayDetails>): ActionResponse(), ToXContentObject {
-    constructor(inp: StreamInput) : this(inp.readBoolean(), inp.readGenericValue() as List<RestoreDetails> ,inp.readGenericValue() as List<ReplayDetails>)
+class StatusResponse(val acknowledged: String,val restoreDetailsList: List<RestoreDetails>,val replayDetailsList: List<ReplayDetails>): ActionResponse(), ToXContentObject {
+    constructor(inp: StreamInput) : this(inp.readString(), inp.readGenericValue() as List<RestoreDetails> ,inp.readGenericValue() as List<ReplayDetails>)
 
 
-    private val ACKNOWLEDGED = ParseField("acknowledged")
+    private val STATE = ParseField("state")
     private val RESTOREDETAILS = ParseField("restore_task_details")
     private val REPLAYDETAILS = ParseField("replay_task_details")
 
-    fun isAcknowledged(): Boolean {
-        return acknowledged
-    }
-
-
     override fun writeTo(out: StreamOutput) {
-        out.writeBoolean(acknowledged)
+        out.writeString(acknowledged)
         out.writeGenericValue(restoreDetailsList)
         out.writeGenericValue(replayDetailsList)
     }
 
     override fun toXContent(builder: XContentBuilder?, params: ToXContent.Params?): XContentBuilder {
         builder!!.startObject()
-        builder.field(ACKNOWLEDGED.preferredName, isAcknowledged())
+        builder.field(STATE.preferredName, acknowledged)
         builder.field(RESTOREDETAILS.preferredName, restoreDetailsList)
         builder.field(REPLAYDETAILS.preferredName, replayDetailsList)
         builder.endObject()

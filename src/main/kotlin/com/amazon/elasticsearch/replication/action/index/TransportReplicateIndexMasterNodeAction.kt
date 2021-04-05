@@ -88,7 +88,7 @@ class TransportReplicateIndexMasterNodeAction @Inject constructor(transportServi
                                  listener: ActionListener<AcknowledgedResponse>) {
         val replicateIndexReq = request.replicateIndexReq
         val user = request.user
-        log.error("Triggering relevant tasks to start replication for " +
+        log.trace("Triggering relevant tasks to start replication for " +
                 "${replicateIndexReq.remoteCluster}:${replicateIndexReq.remoteIndex} -> ${replicateIndexReq.followerIndex}")
 
         // For now this returns a response after creating the follower index and starting the replication tasks
@@ -121,7 +121,7 @@ class TransportReplicateIndexMasterNodeAction @Inject constructor(transportServi
 
                 listener.onResponse(response)
             } catch (e: Exception) {
-                log.error("reaching here 4 Failed to trigger replication for ${replicateIndexReq.followerIndex} - $e")
+                log.error("Failed to trigger replication for ${replicateIndexReq.followerIndex} - $e")
                 listener.onFailure(e)
             }
         }

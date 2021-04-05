@@ -93,7 +93,7 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
 
     inner class ClusterStateListenerForTaskInterruption : ClusterStateListener {
         override fun clusterChanged(event: ClusterChangedEvent) {
-            log.error("Cluster metadata listener invoked on shard task...")
+            log.debug("Cluster metadata listener invoked on shard task...")
             if (event.metadataChanged()) {
                 val replicationStateParams = getReplicationStateParamsForIndex(clusterService, followerShardId.indexName)
                 if (replicationStateParams == null) {
@@ -113,7 +113,6 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
         retentionLeaseHelper.addRetentionLease(remoteShardId, RetentionLeaseActions.RETAIN_ALL, followerShardId)
         val followerIndexService = indicesService.indexServiceSafe(followerShardId.index)
         val indexShard = followerIndexService.getShard(followerShardId.id)
-        log.error("reaching here 15 "+ followerIndexService + " indexShard.localCheckpoint + 1 " + indexShard.localCheckpoint + 1)
         // After restore, persisted localcheckpoint is matched with maxSeqNo.
         // Fetch the operations after localCheckpoint from the leader
         var seqNo = indexShard.localCheckpoint + 1
@@ -131,11 +130,11 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
             rateLimiter.acquire()
             try {
                 val changesResponse = getChanges(node, seqNo)
-                log.error("Got ${changesResponse.changes.size} changes starting from seqNo: $seqNo")
+                log.info("Got ${changesResponse.changes.size} changes starting from seqNo: $seqNo")
                 sequencer.send(changesResponse)
                 seqNo = changesResponse.changes.lastOrNull()?.seqNo()?.inc() ?: seqNo
             } catch (e: ElasticsearchTimeoutException) {
-                log.error("reaching here 9 Timed out waiting for new changes. Current seqNo: $seqNo")
+                log.info("Timed out waiting for new changes. Current seqNo: $seqNo")
                 rateLimiter.release()
                 continue
             }

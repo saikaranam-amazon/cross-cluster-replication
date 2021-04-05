@@ -11,30 +11,15 @@ import org.elasticsearch.transport.RemoteClusterAwareRequest
 
 class IndexReplicationStatusRequest : SingleShardRequest<IndexReplicationStatusRequest>, RemoteClusterAwareRequest {
 
-
-
-
-    var remoteNode: DiscoveryNode
-        get() {
-            TODO()
-        }
-        set(value) {}
-
     lateinit var indexName: String
 
     constructor(indexName: String?, remoteNode: DiscoveryNode?) {
         if (indexName != null) {
             this.indexName = indexName
         }
-        if (remoteNode != null) {
-            this.remoteNode = remoteNode
-        }
     }
 
-
-
     constructor(inp: StreamInput): super(inp) {
-        this.remoteNode = DiscoveryNode(inp)
         indexName = inp.readString()
     }
 
@@ -51,11 +36,8 @@ class IndexReplicationStatusRequest : SingleShardRequest<IndexReplicationStatusR
         }
 
         fun fromXContent(parser: XContentParser, followerIndex: String): IndexReplicationStatusRequest {
-            log.error("reaching hereee 46374 "+ parser + " followerIndex "+ followerIndex)
             val indexReplicationStatusRequest = PARSER.parse(parser, null)
-            log.error("reaching hereee 785355 "+ indexReplicationStatusRequest)
             indexReplicationStatusRequest.indexName = followerIndex
-            log.error("reaching hereee 57454 "+ indexReplicationStatusRequest)
             return indexReplicationStatusRequest
         }
     }
@@ -64,9 +46,7 @@ class IndexReplicationStatusRequest : SingleShardRequest<IndexReplicationStatusR
         return null
     }
 
-//    override fun indices(vararg indices: String?): IndicesRequest {
-//        return this
-//    }
+
 
     override fun indices(): Array<String> {
         return arrayOf(indexName)

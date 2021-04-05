@@ -29,14 +29,9 @@ class ReplicationStatusHandler : BaseRestHandler() {
 
     @Throws(IOException::class)
     override fun prepareRequest(request: RestRequest, client: NodeClient): RestChannelConsumer {
-
-        log.error("reaching here 1234 --" )
                 request.contentOrSourceParamParser().use { parser ->
                         val followIndex = request.param("index")
-                    log.error("reaching here 1234 followIndex --"+followIndex )
-                    log.error("reaching here 1234 parser --"+parser )
                     val indexReplicationStatusRequest = IndexReplicationStatusRequest.fromXContent(parser, followIndex)
-                    log.error("reaching here 1234 indexReplicationStatusRequest --"+indexReplicationStatusRequest )
                     return RestChannelConsumer { channel: RestChannel? ->
                                 client.admin().cluster()
                                         .execute(IndexReplicationStatusAction.INSTANCE, indexReplicationStatusRequest, RestToXContentListener(channel))

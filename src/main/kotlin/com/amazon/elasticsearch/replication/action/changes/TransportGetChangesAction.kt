@@ -68,9 +68,6 @@ class TransportGetChangesAction @Inject constructor(threadPool: ThreadPool, clus
             // TODO: Figure out if we need to acquire a primary permit here
             listener.completeWith {
                 val indexShard = indicesService.indexServiceSafe(shardId.index).getShard(shardId.id)
-                log.error("reaching here 743 global check point "+ shardId + " -- "+ shardId.hashCode() +
-                        " "+ shardId.id() + " "+shardId.index.name + " "+ shardId.index.uuid)
-                log.error("reaching here 16 global check point "+ indexShard.lastSyncedGlobalCheckpoint  + " -- "+ request.fromSeqNo + " -- "+ indexShard.lastSyncedGlobalCheckpoint)
                 if (indexShard.lastSyncedGlobalCheckpoint < request.fromSeqNo) {
                     // There are no new operations to sync. Do a long poll and wait for GlobalCheckpoint to advance. If
                     // the checkpoint doesn't advance by the timeout this throws an ESTimeoutException which the caller

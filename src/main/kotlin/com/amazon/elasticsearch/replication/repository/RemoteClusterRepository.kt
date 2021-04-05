@@ -281,7 +281,7 @@ class RemoteClusterRepository(private val repositoryMetadata: RepositoryMetadata
                             listener.onFailure(e)
                         }
                         override fun onResponse(response: Void?) {
-                            log.error("reaching here 7 Restore successful for ${store.shardId()}")
+                            log.info("Restore successful for ${store.shardId()}")
                             store.decRef()
                             releaseLeaderResources(restoreUUID, remoteShardNode, remoteShardId, followerShardId, followerIndexName)
                             listener.onResponse(null)
@@ -311,7 +311,7 @@ class RemoteClusterRepository(private val repositoryMetadata: RepositoryMetadata
         val releaseResourcesReq = ReleaseLeaderResourcesRequest(restoreUUID, remoteShardNode, remoteShardId,
                 clusterService.clusterName.value(), followerShardId)
         if(remoteClusterGetAction(ReleaseLeaderResourcesAction.INSTANCE, releaseResourcesReq, followerIndexName).isAcknowledged) {
-            log.error("reaching here 8 Successfully released resources at the leader cluster for $remoteShardId at $remoteShardNode")
+            log.info("Successfully released resources at the leader cluster for $remoteShardId at $remoteShardNode")
         }
     }
 

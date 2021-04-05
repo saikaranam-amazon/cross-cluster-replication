@@ -42,8 +42,6 @@ class StopIndexReplicationHandler : BaseRestHandler() {
 
     @Throws(IOException::class)
     override fun prepareRequest(request: RestRequest, client: NodeClient): RestChannelConsumer {
-        log.error("reaching here stop 1357 -- "+ request + " -- "+client)
-        log.error("reaching here stop 74375 -- "+ request.contentOrSourceParamParser())
         request.contentOrSourceParamParser().use { parser ->
             val followIndex = request.param("index")
             val stopReplicationRequest = StopIndexReplicationRequest.fromXContent(parser, followIndex)

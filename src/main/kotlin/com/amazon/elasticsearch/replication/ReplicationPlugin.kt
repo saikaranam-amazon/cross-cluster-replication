@@ -114,9 +114,9 @@ internal class ReplicationPlugin : Plugin(), ActionPlugin, PersistentTaskPlugin,
     companion object {
         const val REPLICATION_EXECUTOR_NAME = "replication"
         val REPLICATED_INDEX_SETTING = Setting.simpleString("index.opendistro.replicated",
-            Setting.Property.InternalIndex, Setting.Property.IndexScope)
+                Setting.Property.InternalIndex, Setting.Property.IndexScope)
         val REPLICATION_CHANGE_BATCH_SIZE = Setting.intSetting("opendistro.replication.ops_batch_size", 512, 16,
-            Setting.Property.Dynamic, Setting.Property.NodeScope)
+                Setting.Property.Dynamic, Setting.Property.NodeScope)
     }
 
     override fun createComponents(client: Client, clusterService: ClusterService, threadPool: ThreadPool,
@@ -137,16 +137,16 @@ internal class ReplicationPlugin : Plugin(), ActionPlugin, PersistentTaskPlugin,
 
     override fun getActions(): List<ActionHandler<out ActionRequest, out ActionResponse>> {
         return listOf(ActionHandler(GetChangesAction.INSTANCE, TransportGetChangesAction::class.java),
-            ActionHandler(ReplicateIndexAction.INSTANCE, TransportReplicateIndexAction::class.java),
-            ActionHandler(ReplicateIndexMasterNodeAction.INSTANCE, TransportReplicateIndexMasterNodeAction::class.java),
-            ActionHandler(ReplayChangesAction.INSTANCE, TransportReplayChangesAction::class.java),
-            ActionHandler(GetStoreMetadataAction.INSTANCE, TransportGetStoreMetadataAction::class.java),
-            ActionHandler(GetFileChunkAction.INSTANCE, TransportGetFileChunkAction::class.java),
-            ActionHandler(UpdateAutoFollowPatternAction.INSTANCE, TransportUpdateAutoFollowPatternAction::class.java),
-            ActionHandler(StopIndexReplicationAction.INSTANCE, TransportStopIndexReplicationAction::class.java),
-            ActionHandler(UpdateIndexBlockAction.INSTANCE, TransportUpddateIndexBlockAction::class.java),
-            ActionHandler(ReleaseLeaderResourcesAction.INSTANCE, TransportReleaseLeaderResourcesAction::class.java),
-            ActionHandler(IndexReplicationStatusAction.INSTANCE, TransportIndexReplicationStatusAction::class.java)
+                ActionHandler(ReplicateIndexAction.INSTANCE, TransportReplicateIndexAction::class.java),
+                ActionHandler(ReplicateIndexMasterNodeAction.INSTANCE, TransportReplicateIndexMasterNodeAction::class.java),
+                ActionHandler(ReplayChangesAction.INSTANCE, TransportReplayChangesAction::class.java),
+                ActionHandler(GetStoreMetadataAction.INSTANCE, TransportGetStoreMetadataAction::class.java),
+                ActionHandler(GetFileChunkAction.INSTANCE, TransportGetFileChunkAction::class.java),
+                ActionHandler(UpdateAutoFollowPatternAction.INSTANCE, TransportUpdateAutoFollowPatternAction::class.java),
+                ActionHandler(StopIndexReplicationAction.INSTANCE, TransportStopIndexReplicationAction::class.java),
+                ActionHandler(UpdateIndexBlockAction.INSTANCE, TransportUpddateIndexBlockAction::class.java),
+                ActionHandler(ReleaseLeaderResourcesAction.INSTANCE, TransportReleaseLeaderResourcesAction::class.java),
+                ActionHandler(IndexReplicationStatusAction.INSTANCE, TransportIndexReplicationStatusAction::class.java)
         )
     }
 
@@ -156,8 +156,8 @@ internal class ReplicationPlugin : Plugin(), ActionPlugin, PersistentTaskPlugin,
                                  indexNameExpressionResolver: IndexNameExpressionResolver,
                                  nodesInCluster: Supplier<DiscoveryNodes>): List<RestHandler> {
         return listOf(ReplicateIndexHandler(),
-            UpdateAutoFollowPatternsHandler(),
-            StopIndexReplicationHandler(),
+                UpdateAutoFollowPatternsHandler(),
+                StopIndexReplicationHandler(),
                 ReplicationStatusHandler())
     }
 
@@ -169,57 +169,57 @@ internal class ReplicationPlugin : Plugin(), ActionPlugin, PersistentTaskPlugin,
     override fun getPersistentTasksExecutor(clusterService: ClusterService, threadPool: ThreadPool, client: Client,
                                             settingsModule: SettingsModule,
                                             expressionResolver: IndexNameExpressionResolver)
-        : List<PersistentTasksExecutor<*>> {
+            : List<PersistentTasksExecutor<*>> {
         return listOf(
-            ShardReplicationExecutor(REPLICATION_EXECUTOR_NAME, clusterService, threadPool, client),
-            IndexReplicationExecutor(REPLICATION_EXECUTOR_NAME, clusterService, threadPool, client),
-            AutoFollowExecutor(REPLICATION_EXECUTOR_NAME, clusterService, threadPool, client))
+                ShardReplicationExecutor(REPLICATION_EXECUTOR_NAME, clusterService, threadPool, client),
+                IndexReplicationExecutor(REPLICATION_EXECUTOR_NAME, clusterService, threadPool, client),
+                AutoFollowExecutor(REPLICATION_EXECUTOR_NAME, clusterService, threadPool, client))
     }
 
     override fun getNamedWriteables(): List<NamedWriteableRegistry.Entry> {
         return listOf(
-            NamedWriteableRegistry.Entry(PersistentTaskParams::class.java, ShardReplicationParams.NAME,
-            // can't directly pass in ::ReplicationTaskParams due to https://youtrack.jetbrains.com/issue/KT-35912
-            Writeable.Reader { inp -> ShardReplicationParams(inp) }),
-            NamedWriteableRegistry.Entry(PersistentTaskState::class.java, ShardReplicationState.NAME,
-            Writeable.Reader { inp -> ShardReplicationState.reader(inp) }),
+                NamedWriteableRegistry.Entry(PersistentTaskParams::class.java, ShardReplicationParams.NAME,
+                        // can't directly pass in ::ReplicationTaskParams due to https://youtrack.jetbrains.com/issue/KT-35912
+                        Writeable.Reader { inp -> ShardReplicationParams(inp) }),
+                NamedWriteableRegistry.Entry(PersistentTaskState::class.java, ShardReplicationState.NAME,
+                        Writeable.Reader { inp -> ShardReplicationState.reader(inp) }),
 
-            NamedWriteableRegistry.Entry(PersistentTaskParams::class.java, IndexReplicationParams.NAME,
-                Writeable.Reader { inp -> IndexReplicationParams(inp) }),
-            NamedWriteableRegistry.Entry(PersistentTaskState::class.java, IndexReplicationState.NAME,
-                Writeable.Reader { inp -> IndexReplicationState.reader(inp) }),
+                NamedWriteableRegistry.Entry(PersistentTaskParams::class.java, IndexReplicationParams.NAME,
+                        Writeable.Reader { inp -> IndexReplicationParams(inp) }),
+                NamedWriteableRegistry.Entry(PersistentTaskState::class.java, IndexReplicationState.NAME,
+                        Writeable.Reader { inp -> IndexReplicationState.reader(inp) }),
 
-            NamedWriteableRegistry.Entry(PersistentTaskParams::class.java, AutoFollowParams.NAME,
-                                         Writeable.Reader { inp -> AutoFollowParams(inp) }),
+                NamedWriteableRegistry.Entry(PersistentTaskParams::class.java, AutoFollowParams.NAME,
+                        Writeable.Reader { inp -> AutoFollowParams(inp) }),
 
-            NamedWriteableRegistry.Entry(Metadata.Custom::class.java, ReplicationMetadata.NAME,
-                Writeable.Reader { inp -> ReplicationMetadata(inp) }),
-            NamedWriteableRegistry.Entry(NamedDiff::class.java, ReplicationMetadata.NAME,
-                Writeable.Reader { inp -> ReplicationMetadata.Diff(inp) })
+                NamedWriteableRegistry.Entry(Metadata.Custom::class.java, ReplicationMetadata.NAME,
+                        Writeable.Reader { inp -> ReplicationMetadata(inp) }),
+                NamedWriteableRegistry.Entry(NamedDiff::class.java, ReplicationMetadata.NAME,
+                        Writeable.Reader { inp -> ReplicationMetadata.Diff(inp) })
 
         )
     }
 
     override fun getNamedXContent(): List<NamedXContentRegistry.Entry> {
         return listOf(
-            NamedXContentRegistry.Entry(PersistentTaskParams::class.java,
-                    ParseField(IndexReplicationParams.NAME),
-                    CheckedFunction { parser: XContentParser -> IndexReplicationParams.fromXContent(parser)}),
-            NamedXContentRegistry.Entry(PersistentTaskState::class.java,
-                    ParseField(IndexReplicationState.NAME),
-                    CheckedFunction { parser: XContentParser -> IndexReplicationState.fromXContent(parser)}),
-            NamedXContentRegistry.Entry(PersistentTaskParams::class.java,
-                    ParseField(ShardReplicationParams.NAME),
-                    CheckedFunction { parser: XContentParser -> ShardReplicationParams.fromXContent(parser)}),
-            NamedXContentRegistry.Entry(PersistentTaskState::class.java,
-                    ParseField(ShardReplicationState.NAME),
-                    CheckedFunction { parser: XContentParser -> ShardReplicationState.fromXContent(parser)}),
-            NamedXContentRegistry.Entry(PersistentTaskParams::class.java,
-                    ParseField(AutoFollowParams.NAME),
-                    CheckedFunction { parser: XContentParser -> AutoFollowParams.fromXContent(parser)}),
-            NamedXContentRegistry.Entry(Metadata.Custom::class.java,
-                    ParseField(ReplicationMetadata.NAME),
-                    CheckedFunction { parser: XContentParser -> ReplicationMetadata.fromXContent(parser)})
+                NamedXContentRegistry.Entry(PersistentTaskParams::class.java,
+                        ParseField(IndexReplicationParams.NAME),
+                        CheckedFunction { parser: XContentParser -> IndexReplicationParams.fromXContent(parser) }),
+                NamedXContentRegistry.Entry(PersistentTaskState::class.java,
+                        ParseField(IndexReplicationState.NAME),
+                        CheckedFunction { parser: XContentParser -> IndexReplicationState.fromXContent(parser) }),
+                NamedXContentRegistry.Entry(PersistentTaskParams::class.java,
+                        ParseField(ShardReplicationParams.NAME),
+                        CheckedFunction { parser: XContentParser -> ShardReplicationParams.fromXContent(parser) }),
+                NamedXContentRegistry.Entry(PersistentTaskState::class.java,
+                        ParseField(ShardReplicationState.NAME),
+                        CheckedFunction { parser: XContentParser -> ShardReplicationState.fromXContent(parser) }),
+                NamedXContentRegistry.Entry(PersistentTaskParams::class.java,
+                        ParseField(AutoFollowParams.NAME),
+                        CheckedFunction { parser: XContentParser -> AutoFollowParams.fromXContent(parser) }),
+                NamedXContentRegistry.Entry(Metadata.Custom::class.java,
+                        ParseField(ReplicationMetadata.NAME),
+                        CheckedFunction { parser: XContentParser -> ReplicationMetadata.fromXContent(parser) })
         )
     }
 
@@ -230,7 +230,8 @@ internal class ReplicationPlugin : Plugin(), ActionPlugin, PersistentTaskPlugin,
     override fun getInternalRepositories(env: Environment, namedXContentRegistry: NamedXContentRegistry,
                                          clusterService: ClusterService, recoverySettings: RecoverySettings): Map<String, Repository.Factory> {
         val repoFactory = Repository.Factory { repoMetadata: RepositoryMetadata ->
-            RemoteClusterRepository(repoMetadata, client, clusterService, recoverySettings) }
+            RemoteClusterRepository(repoMetadata, client, clusterService, recoverySettings)
+        }
         return mapOf(REMOTE_REPOSITORY_TYPE to repoFactory)
     }
 
