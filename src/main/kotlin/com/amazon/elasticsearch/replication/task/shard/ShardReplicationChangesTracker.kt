@@ -17,9 +17,9 @@ class ShardReplicationChangesTracker(clusterService: ClusterService, indexShard:
     private val log = Loggers.getLogger(javaClass, indexShard.shardId())!!
 
     private val SLEEP_TIME_BETWEEN_POLL_MS = 50L
-    private val BACKUP_READERS = 2
     private val mutex = Mutex()
     private val readersPerShard = clusterService.clusterSettings.get(ReplicationPlugin.REPLICATION_PARALLEL_READ_PER_SHARD)
+    private var backupReaders = 2
     private val rateLimiter = Semaphore(readersPerShard)
     private val missingBatches = Collections.synchronizedList(ArrayList<Pair<Long, Long>>())
     private val observedSeqNoAtLeader = AtomicLong(indexShard.localCheckpoint)
@@ -30,6 +30,11 @@ class ShardReplicationChangesTracker(clusterService: ClusterService, indexShard:
 
     init {
         clusterService.clusterSettings.addSettingsUpdateConsumer(ReplicationPlugin.REPLICATION_CHANGE_BATCH_SIZE) { batchSize = it }
+        if (readersPerShard == 1) {
+            backupReaders = 0
+        } else if (readersPerShard == 2) {
+            backupReaders = 1
+        }
     }
 
     suspend fun requestBatchToFetch():Pair<Long, Long> {
@@ -37,7 +42,7 @@ class ShardReplicationChangesTracker(clusterService: ClusterService, indexShard:
             debugLog("Mutex lock")
             try {
                 debugLog("Waiting for permit..available: ${rateLimiter.availablePermits}")
-                while (rateLimiter.availablePermits <= BACKUP_READERS && missingBatches.isEmpty()) {
+                while (rateLimiter.availablePermits <= backupReaders && missingBatches.isEmpty()) {
                     delay(SLEEP_TIME_BETWEEN_POLL_MS)
                 }
 
@@ -68,8 +73,13 @@ class ShardReplicationChangesTracker(clusterService: ClusterService, indexShard:
 
                 debugLog("Updating. ${fromSeqNoRequested}-${toSeqNoReceived}/${toSeqNoRequested}, seqNoAtLeader:$seqNoAtLeader")
                 if (toSeqNoRequested > toSeqNoReceived) {
-                    debugLog("Didn't get the complete batch. Adding the missing operations ${toSeqNoReceived + 1}-${toSeqNoRequested}")
-                    missingBatches.add(Pair(toSeqNoReceived + 1, toSeqNoRequested))
+                    if (seqNoAtLeader > toSeqNoReceived) {
+                        debugLog("Didn't get the complete batch. Adding the missing operations ${toSeqNoReceived + 1}-${toSeqNoRequested}. Leader at $seqNoAtLeader")
+                        missingBatches.add(Pair(toSeqNoReceived + 1, toSeqNoRequested))
+                    } else {
+                        debugLog(":leader didn't have enough translogs")
+                        seqNoAlreadyRequested.getAndUpdate { toSeqNoReceived }
+                    }
                 }
 
                 // TODO: Instead of checking for missingBatches.size, we can also check if there are any pending operation before updating the new lease.
