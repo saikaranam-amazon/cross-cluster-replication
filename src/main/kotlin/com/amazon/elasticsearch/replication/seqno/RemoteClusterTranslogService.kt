@@ -49,7 +49,7 @@ class RemoteClusterTranslogService @Inject constructor(private val indicesServic
             log.info("Doesn't have history of operations starting from $startSeqNo")
         }
         log.info("Getting translog snapshot from $startSeqNo")
-        val snapshot = indexShard.getHistoryOperations("odfe_replication", Engine.HistorySource.TRANSLOG, startSeqNo)
+        val snapshot = indexShard.getHistoryOperations("odfe_replication", Engine.HistorySource.TRANSLOG, startSeqNo, toSeqNo)
         val ops = ArrayList<Translog.Operation>(1000000)
         //var ops = arrayListOf<Translog.Operation>()
         var i = 0
