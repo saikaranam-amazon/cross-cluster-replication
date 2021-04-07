@@ -45,17 +45,19 @@ class RemoteClusterTranslogService @Inject constructor(private val indicesServic
             closableResources.add(historyLock)
             trackingShardId[indexShard.shardId()] = true
         }
+        /*
         if(!indexShard.hasCompleteHistoryOperations("odfe_replication", Engine.HistorySource.TRANSLOG, startSeqNo)) {
             log.info("Doesn't have history of operations starting from $startSeqNo")
         }
+         */
         log.info("Getting translog snapshot from $startSeqNo")
         val snapshot = indexShard.getHistoryOperations("odfe_replication", Engine.HistorySource.TRANSLOG, startSeqNo, toSeqNo)
-        val ops = ArrayList<Translog.Operation>(1000000)
+        val ops = ArrayList<Translog.Operation>((toSeqNo - startSeqNo + 3).toInt())
         //var ops = arrayListOf<Translog.Operation>()
         var i = 0
         var op  = snapshot.next()
         while(op != null) {
-            if(op.seqNo() >= startSeqNo && op.seqNo() <= startSeqNo + 999999) {
+            if(op.seqNo() in startSeqNo..toSeqNo) {
                 ops.add(op)
             }
             i++
@@ -63,7 +65,7 @@ class RemoteClusterTranslogService @Inject constructor(private val indicesServic
         }
         snapshot.close()
         //var sortedOps = ops.sortedBy { it.seqNo() }
-        val sortedOps = ArrayList<Translog.Operation>(1000000)
+        val sortedOps = ArrayList<Translog.Operation>((toSeqNo - startSeqNo + 3).toInt())
         sortedOps.addAll(ops)
         sortedOps.addAll(ops)
         for(ele in ops) {
@@ -71,7 +73,7 @@ class RemoteClusterTranslogService @Inject constructor(private val indicesServic
         }
 
         log.info("Starting seqno after sorting ${sortedOps[0].seqNo()} and ending seqno ${sortedOps[ops.size-1].seqNo()}")
-        return sortedOps.subList(0, ops.size.coerceAtMost(999999))
+        return sortedOps.subList(0, ops.size.coerceAtMost((toSeqNo - startSeqNo + 3).toInt()))
     }
 
 }

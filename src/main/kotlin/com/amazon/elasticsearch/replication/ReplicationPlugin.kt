@@ -113,7 +113,7 @@ internal class ReplicationPlugin : Plugin(), ActionPlugin, PersistentTaskPlugin,
         const val REPLICATION_EXECUTOR_NAME = "replication"
         val REPLICATED_INDEX_SETTING = Setting.simpleString("index.opendistro.replicated",
             Setting.Property.InternalIndex, Setting.Property.IndexScope)
-        val REPLICATION_CHANGE_BATCH_SIZE = Setting.intSetting("opendistro.replication.ops_batch_size", 1000000, 16,
+        val REPLICATION_CHANGE_BATCH_SIZE = Setting.intSetting("opendistro.replication.ops_batch_size", 20000, 16,
             Setting.Property.Dynamic, Setting.Property.NodeScope)
         val REPLICATION_PARALLEL_READ_PER_SHARD = Setting.intSetting("opendistro.replication.parallel_reads_per_shard", 4, 1,
                 Setting.Property.Dynamic, Setting.Property.NodeScope)
