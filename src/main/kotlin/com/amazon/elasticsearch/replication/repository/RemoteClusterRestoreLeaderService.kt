@@ -123,14 +123,14 @@ class RemoteClusterRestoreLeaderService @Inject constructor(private val indicesS
         var fromSeqNo = RetentionLeaseActions.RETAIN_ALL
 
         // Adds the retention lease for fromSeqNo for the next stage of the replication.
-        //retentionLeaseHelper.addRetentionLease(request.leaderShardId, fromSeqNo, request.followerShardId, RemoteClusterRepository.REMOTE_CLUSTER_REPO_REQ_TIMEOUT_IN_MILLI_SEC)
+        retentionLeaseHelper.addRetentionLease(request.leaderShardId, fromSeqNo, request.followerShardId, RemoteClusterRepository.REMOTE_CLUSTER_REPO_REQ_TIMEOUT_IN_MILLI_SEC)
 
         /**
          * At this point, it should be safe to release retention lock as the retention lease
          * is acquired from the local checkpoint and the rest of the follower replay actions
          * can be performed using this retention lease.
          */
-        //retentionLock.close()
+        retentionLock.close()
 
         var restoreContext = RestoreContext(restoreUUID, leaderIndexShard,
                 indexCommitRef, metadataSnapshot, fromSeqNo)

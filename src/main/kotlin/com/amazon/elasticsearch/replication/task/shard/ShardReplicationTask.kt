@@ -95,9 +95,10 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
     private suspend fun replicate() {
         updateTaskState(FollowingState)
         // TODO: Acquire retention lease prior to initiating remote recovery
-        //retentionLeaseHelper.addRetentionLease(remoteShardId, RetentionLeaseActions.RETAIN_ALL, followerShardId)
+
         val followerIndexService = indicesService.indexServiceSafe(followerShardId.index)
         val indexShard = followerIndexService.getShard(followerShardId.id)
+        retentionLeaseHelper.addRetentionLease(remoteShardId, indexShard.lastSyncedGlobalCheckpoint, followerShardId)
         // After restore, persisted localcheckpoint is matched with maxSeqNo.
         // Fetch the operations after localCheckpoint from the leader
         //var seqNo = indexShard.localCheckpoint + 1
@@ -147,6 +148,12 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
                 //delay(SLEEP_TIME_BETWEEN_POLL_MS)
 
                 // Renew lease after a pre-determined time period.
+                if (System.currentTimeMillis() - lastLeaseRenewalTime > 5000) {
+                    val seqNoForRenewal = changeTracker.getSeqNoForLeaseRenewal()
+                    log.info("ankikala: renewing lease to $seqNoForRenewal")
+                    lastLeaseRenewalTime = System.currentTimeMillis()
+                    retentionLeaseHelper.renewRetentionLease(remoteShardId, seqNoForRenewal, followerShardId)
+                }
             }
         }
         sequencer.close()

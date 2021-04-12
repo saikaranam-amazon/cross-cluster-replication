@@ -1,0 +1,173 @@
+diff --git a/server/src/main/java/org/elasticsearch/index/engine/InternalEngine.java b/server/src/main/java/org/elasticsearch/index/engine/InternalEngine.java
+index d52335a517f..cfa29055fab 100644
+--- a/server/src/main/java/org/elasticsearch/index/engine/InternalEngine.java
++++ b/server/src/main/java/org/elasticsearch/index/engine/InternalEngine.java
+@@ -214,7 +214,8 @@ public class InternalEngine extends Engine {
+         final TranslogDeletionPolicy translogDeletionPolicy = new TranslogDeletionPolicy(
+             engineConfig.getIndexSettings().getTranslogRetentionSize().getBytes(),
+             engineConfig.getIndexSettings().getTranslogRetentionAge().getMillis(),
+-            engineConfig.getIndexSettings().getTranslogRetentionTotalFiles()
++            engineConfig.getIndexSettings().getTranslogRetentionTotalFiles(),
++            engineConfig.retentionLeasesSupplier()
+         );
+         store.incRef();
+         IndexWriter writer = null;
+@@ -2681,14 +2682,18 @@ public class InternalEngine extends Engine {
+ 
+     private void ensureSoftDeletesEnabled() {
+         if (softDeleteEnabled == false) {
+-            assert false : "index " + shardId.getIndex() + " does not have soft-deletes enabled";
+-            throw new IllegalStateException("index " + shardId.getIndex() + " does not have soft-deletes enabled");
++            //assert false : "index " + shardId.getIndex() + " does not have soft-deletes enabled";
++            //throw new IllegalStateException("index " + shardId.getIndex() + " does not have soft-deletes enabled");
+         }
+     }
+ 
+     @Override
+     public Translog.Snapshot newChangesSnapshot(String source, MapperService mapperService,
+                                                 long fromSeqNo, long toSeqNo, boolean requiredFullRange) throws IOException {
++        if (source.equals(HistorySource.TRANSLOG.name())) {
++            return getTranslog().newSnapshot(fromSeqNo, toSeqNo);
++        }
++
+         ensureSoftDeletesEnabled();
+         ensureOpen();
+         refreshIfNeeded(source, toSeqNo);
+diff --git a/server/src/main/java/org/elasticsearch/index/shard/IndexShard.java b/server/src/main/java/org/elasticsearch/index/shard/IndexShard.java
+index 34891621a04..15317f2b9b7 100644
+--- a/server/src/main/java/org/elasticsearch/index/shard/IndexShard.java
++++ b/server/src/main/java/org/elasticsearch/index/shard/IndexShard.java
+@@ -1996,6 +1996,14 @@ public class IndexShard extends AbstractIndexShardComponent implements IndicesCl
+         return getEngine().readHistoryOperations(reason, source, mapperService, startingSeqNo);
+     }
+ 
++    /**
++     * Creates a new history snapshot for reading operations since the provided starting seqno (inclusive).
++     * The returned snapshot can be retrieved from either Lucene index or translog files.
++     */
++    public Translog.Snapshot getHistoryOperations(String reason, Engine.HistorySource source, long startingSeqNo, long endSeqNo) throws IOException {
++        return getEngine().newChangesSnapshot(source.name(), mapperService, startingSeqNo, endSeqNo, true);
++    }
++
+     /**
+      * Checks if we have a completed history of operations since the given starting seqno (inclusive).
+      * This method should be called after acquiring the retention lock; See {@link #acquireHistoryRetentionLock(Engine.HistorySource)}
+@@ -2136,11 +2144,13 @@ public class IndexShard extends AbstractIndexShardComponent implements IndicesCl
+     }
+ 
+     private void ensureSoftDeletesEnabled(String feature) {
++        /*
+         if (indexSettings.isSoftDeleteEnabled() == false) {
+             String message = feature + " requires soft deletes but " + indexSettings.getIndex() + " does not have soft deletes enabled";
+             assert false : message;
+             throw new IllegalStateException(message);
+         }
++         */
+     }
+ 
+     /**
+diff --git a/server/src/main/java/org/elasticsearch/index/translog/Translog.java b/server/src/main/java/org/elasticsearch/index/translog/Translog.java
+index eba91ab21de..8895d826185 100644
+--- a/server/src/main/java/org/elasticsearch/index/translog/Translog.java
++++ b/server/src/main/java/org/elasticsearch/index/translog/Translog.java
+@@ -1663,6 +1663,9 @@ public class Translog extends AbstractIndexShardComponent implements IndexShardC
+      * required generation
+      */
+     public void trimUnreferencedReaders() throws IOException {
++        final long testSeqNo = getMinReferencedGen();
++        logger.info("Trimming from 1 - ", Long.toString(testSeqNo));
++
+         // first check under read lock if any readers can be trimmed
+         try (ReleasableLock ignored = readLock.acquire()) {
+             if (closed.get()) {
+@@ -1682,6 +1685,7 @@ public class Translog extends AbstractIndexShardComponent implements IndexShardC
+                 return;
+             }
+             final long minReferencedGen = getMinReferencedGen();
++            logger.info("Trimming from 2 - ", Long.toString(minReferencedGen));
+             for (Iterator<TranslogReader> iterator = readers.iterator(); iterator.hasNext(); ) {
+                 TranslogReader reader = iterator.next();
+                 if (reader.getGeneration() >= minReferencedGen) {
+diff --git a/server/src/main/java/org/elasticsearch/index/translog/TranslogDeletionPolicy.java b/server/src/main/java/org/elasticsearch/index/translog/TranslogDeletionPolicy.java
+index a26b2dc15e9..98200dd2238 100644
+--- a/server/src/main/java/org/elasticsearch/index/translog/TranslogDeletionPolicy.java
++++ b/server/src/main/java/org/elasticsearch/index/translog/TranslogDeletionPolicy.java
+@@ -22,6 +22,8 @@ package org.elasticsearch.index.translog;
+ import org.apache.lucene.util.Counter;
+ import org.elasticsearch.Assertions;
+ import org.elasticsearch.common.lease.Releasable;
++import org.elasticsearch.index.seqno.RetentionLease;
++import org.elasticsearch.index.seqno.RetentionLeases;
+ import org.elasticsearch.index.seqno.SequenceNumbers;
+ 
+ import java.io.IOException;
+@@ -30,10 +32,12 @@ import java.util.List;
+ import java.util.Map;
+ import java.util.concurrent.ConcurrentHashMap;
+ import java.util.concurrent.atomic.AtomicBoolean;
++import java.util.function.Supplier;
+ 
+ public class TranslogDeletionPolicy {
+ 
+     private final Map<Object, RuntimeException> openTranslogRef;
++    private Supplier<RetentionLeases> retentionLeasesSupplier;
+ 
+     public void assertNoOpenTranslogRefs() {
+         if (openTranslogRef.isEmpty() == false) {
+@@ -67,6 +71,19 @@ public class TranslogDeletionPolicy {
+         }
+     }
+ 
++    public TranslogDeletionPolicy(long retentionSizeInBytes, long retentionAgeInMillis, int retentionTotalFiles,
++                                  Supplier<RetentionLeases> retentionLeasesSupplier) {
++        this.retentionSizeInBytes = retentionSizeInBytes;
++        this.retentionAgeInMillis = retentionAgeInMillis;
++        this.retentionTotalFiles = retentionTotalFiles;
++        if (Assertions.ENABLED) {
++            openTranslogRef = new ConcurrentHashMap<>();
++        } else {
++            openTranslogRef = null;
++        }
++        this.retentionLeasesSupplier = retentionLeasesSupplier;
++    }
++
+     public synchronized void setLocalCheckpointOfSafeCommit(long newCheckpoint) {
+         if (newCheckpoint < this.localCheckpointOfSafeCommit) {
+             throw new IllegalArgumentException("local checkpoint of the safe commit can't go backwards: " +
+@@ -144,6 +161,7 @@ public class TranslogDeletionPolicy {
+         long minByLocks = getMinTranslogGenRequiredByLocks();
+         long minByAge = getMinTranslogGenByAge(readers, writer, retentionAgeInMillis, currentTime());
+         long minBySize = getMinTranslogGenBySize(readers, writer, retentionSizeInBytes);
++        long minByRetentionLeases = getMinTranslogGenByRetentionLease(readers, writer, retentionLeasesSupplier);
+         final long minByAgeAndSize;
+         if (minBySize == Long.MIN_VALUE && minByAge == Long.MIN_VALUE) {
+             // both size and age are disabled;
+@@ -152,7 +170,27 @@ public class TranslogDeletionPolicy {
+             minByAgeAndSize = Math.max(minByAge, minBySize);
+         }
+         long minByNumFiles = getMinTranslogGenByTotalFiles(readers, writer, retentionTotalFiles);
+-        return Math.min(Math.max(minByAgeAndSize, minByNumFiles), minByLocks);
++        long temp = Math.min(Math.max(minByAgeAndSize, minByNumFiles), minByLocks);
++        return Math.min(temp, minByRetentionLeases);
++    }
++
++    static long getMinTranslogGenByRetentionLease(List<TranslogReader> readers, TranslogWriter writer,
++                                                  Supplier<RetentionLeases> retentionLeasesSupplier) {
++        long minGen = writer.getGeneration();
++        final long minimumRetainingSequenceNumber = retentionLeasesSupplier.get()
++            .leases()
++            .stream()
++            .mapToLong(RetentionLease::retainingSequenceNumber)
++            .min()
++            .orElse(Long.MAX_VALUE);
++        for (int i = readers.size() - 1; i >= 0; i--) {
++            final TranslogReader reader = readers.get(i);
++            if(reader.getCheckpoint().minSeqNo <= minimumRetainingSequenceNumber &&
++                reader.getCheckpoint().maxSeqNo >= minimumRetainingSequenceNumber) {
++                minGen = Math.min(minGen, reader.getGeneration());
++            }
++        }
++        return minGen;
+     }
+ 
+     static long getMinTranslogGenBySize(List<TranslogReader> readers, TranslogWriter writer, long retentionSizeInBytes) {

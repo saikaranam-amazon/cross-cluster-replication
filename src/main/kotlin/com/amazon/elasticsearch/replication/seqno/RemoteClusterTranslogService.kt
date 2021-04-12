@@ -39,12 +39,13 @@ class RemoteClusterTranslogService @Inject constructor(private val indicesServic
 
     @Synchronized
     public fun getHistoryOfOperations(indexShard: IndexShard, startSeqNo: Long, toSeqNo: Long): List<Translog.Operation> {
+        /*
         if(!trackingShardId.getOrElse(indexShard.shardId(), { false })) {
             log.info("Locking translog")
             val historyLock = indexShard.acquireHistoryRetentionLock(Engine.HistorySource.TRANSLOG)
             closableResources.add(historyLock)
             trackingShardId[indexShard.shardId()] = true
-        }
+        }*/
         /*
         if(!indexShard.hasCompleteHistoryOperations("odfe_replication", Engine.HistorySource.TRANSLOG, startSeqNo)) {
             log.info("Doesn't have history of operations starting from $startSeqNo")
