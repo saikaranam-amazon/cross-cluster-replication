@@ -19,8 +19,8 @@ class ShardReplicationChangesTracker(clusterService: ClusterService, indexShard:
     private val SLEEP_TIME_BETWEEN_POLL_MS = 50L
     private val mutex = Mutex()
     private val readersPerShard = clusterService.clusterSettings.get(ReplicationPlugin.REPLICATION_PARALLEL_READ_PER_SHARD)
-    private var backupReaders = 2
-    private val rateLimiter = Semaphore(readersPerShard)
+    private var backupReaders = 0
+    private val rateLimiter = Semaphore(1)
     private val missingBatches = Collections.synchronizedList(ArrayList<Pair<Long, Long>>())
     private val observedSeqNoAtLeader = AtomicLong(indexShard.localCheckpoint)
     private val seqNoAlreadyRequested = AtomicLong(indexShard.localCheckpoint)
@@ -30,11 +30,6 @@ class ShardReplicationChangesTracker(clusterService: ClusterService, indexShard:
 
     init {
         clusterService.clusterSettings.addSettingsUpdateConsumer(ReplicationPlugin.REPLICATION_CHANGE_BATCH_SIZE) { batchSize = it }
-        if (readersPerShard == 1) {
-            backupReaders = 0
-        } else if (readersPerShard == 2) {
-            backupReaders = 1
-        }
     }
 
     suspend fun requestBatchToFetch():Pair<Long, Long> {
@@ -45,8 +40,8 @@ class ShardReplicationChangesTracker(clusterService: ClusterService, indexShard:
                 while (rateLimiter.availablePermits <= backupReaders && missingBatches.isEmpty()) {
                     delay(SLEEP_TIME_BETWEEN_POLL_MS)
                 }
-
                 rateLimiter.acquire()
+
                 debugLog("Waiting to get batch. requested: ${seqNoAlreadyRequested.get()}, leader: ${observedSeqNoAtLeader.get()}")
                 while (seqNoAlreadyRequested.get() > observedSeqNoAtLeader.get() + 1 && missingBatches.isEmpty()) {
                     delay(SLEEP_TIME_BETWEEN_POLL_MS)
@@ -68,14 +63,12 @@ class ShardReplicationChangesTracker(clusterService: ClusterService, indexShard:
     fun updateBatchFetched(success: Boolean, fromSeqNoRequested: Long, toSeqNoRequested: Long, toSeqNoReceived: Long, seqNoAtLeader: Long) {
         try {
             if (success) {
-                // we shouldn't ever be getting more operations than expected.
-                assert(toSeqNoRequested >= toSeqNoReceived) { "${Thread.currentThread().getName()} Got more operations in the batch than requested" }
-
-                debugLog("Updating. ${fromSeqNoRequested}-${toSeqNoReceived}/${toSeqNoRequested}, seqNoAtLeader:$seqNoAtLeader")
+                debugLog("Got logs ${fromSeqNoRequested}-${toSeqNoReceived}/${toSeqNoRequested}, seqNoAtLeader:$seqNoAtLeader")
                 if (toSeqNoRequested > toSeqNoReceived) {
-                    if (seqNoAtLeader > toSeqNoReceived) {
-                        debugLog("Didn't get the complete batch. Adding the missing operations ${toSeqNoReceived + 1}-${toSeqNoRequested}. Leader at $seqNoAtLeader")
-                        missingBatches.add(Pair(toSeqNoReceived + 1, toSeqNoRequested))
+                    if (seqNoAtLeader > toSeqNoReceived && toSeqNoRequested != seqNoAlreadyRequested.get()) {
+                        debugLog("Didn't get the complete batch. Adding the missing operations ${toSeqNoReceived + 1}-${toSeqNoRequested}/$seqNoAtLeader. Leader at $seqNoAtLeader")
+                        missingBatches.add(Pair(toSeqNoReceived + 1,
+                            if (toSeqNoRequested <= seqNoAtLeader) toSeqNoRequested else seqNoAtLeader))
                     } else {
                         debugLog(":leader didn't have enough translogs")
                         seqNoAlreadyRequested.getAndUpdate { toSeqNoReceived }

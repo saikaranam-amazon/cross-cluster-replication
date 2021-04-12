@@ -51,13 +51,18 @@ class TranslogSequencer(scope: CoroutineScope, private val followerShardId: Shar
         // raise the same exception.  See [SendChannel.close] method for details.
         var highWatermark = initialSeqNo
         for (m in channel) {
+            debugLog("Checking for ${highWatermark + 1}.")
+            debugLog("Queue is ${unAppliedChanges.keys().toList()}")
             while (checkIfChangesPresentFrom(highWatermark + 1)) {
                 try {
                     val next = getChangesFrom(highWatermark + 1)
                     val replayRequest = ReplayChangesRequest(followerShardId, next.changes, next.maxSeqNoOfUpdatesOrDeletes,
                             remoteCluster, remoteIndexName)
                     replayRequest.parentTask = parentTaskId
+                    val startTime = System.nanoTime()
                     val replayResponse = client.suspendExecute(ReplayChangesAction.INSTANCE, replayRequest)
+                    val endTime = System.nanoTime()
+                    debugLog("ReplayChangesRequest. Total time taken(ms): " + (endTime - startTime)/1000000)
                     if (replayResponse.shardInfo.failed > 0) {
                         replayResponse.shardInfo.failures.forEachIndexed { i, failure ->
                             log.error("Failed replaying changes. Failure:$i:$failure")
@@ -66,7 +71,7 @@ class TranslogSequencer(scope: CoroutineScope, private val followerShardId: Shar
                     }
                     highWatermark = next.changes.lastOrNull()?.seqNo() ?: highWatermark
                 } finally {
-                    //rateLimiter.release()
+                    rateLimiter.release()
                 }
             }
         }
@@ -98,6 +103,11 @@ class TranslogSequencer(scope: CoroutineScope, private val followerShardId: Shar
         }
         */
     }
+
+    private fun debugLog(msg: String) {
+        log.info("ankikala: ${Thread.currentThread().getName()}: $msg")
+    }
+
 
     suspend fun close() {
         sequencer.close()

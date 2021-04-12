@@ -14,6 +14,7 @@ import com.amazon.elasticsearch.replication.util.suspendExecuteWithRetries
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
@@ -140,12 +141,13 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
                     } catch (e: ElasticsearchTimeoutException) {
                         debugLog("Timed out waiting for new changes.")
                         changeTracker.updateBatchFetched(false, fromSeqNo, toSeqNo, fromSeqNo - 1,-1)
-                    } finally {
                         rateLimiter.release()
+                    } finally {
+                        //rateLimiter.release()
                     }
                 }
                 //Wait just enough for the coroutine to start
-                //delay(SLEEP_TIME_BETWEEN_POLL_MS)
+                delay(SLEEP_TIME_BETWEEN_POLL_MS)
 
                 // Renew lease after a pre-determined time period.
                 if (System.currentTimeMillis() - lastLeaseRenewalTime > 5000) {

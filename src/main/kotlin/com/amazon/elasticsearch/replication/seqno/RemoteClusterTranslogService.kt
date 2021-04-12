@@ -53,7 +53,9 @@ class RemoteClusterTranslogService @Inject constructor(private val indicesServic
          */
         log.info("Getting translog snapshot from $startSeqNo")
         val snapshot = indexShard.getHistoryOperations("odfe_replication", Engine.HistorySource.TRANSLOG, startSeqNo, toSeqNo)
-        val ops = ArrayList<Translog.Operation>((toSeqNo - startSeqNo + 3).toInt())
+
+        val opsSize = toSeqNo - startSeqNo + 3
+        val ops = ArrayList<Translog.Operation>(opsSize.toInt())
         //var ops = arrayListOf<Translog.Operation>()
         var i = 0
         var op  = snapshot.next()
@@ -65,16 +67,15 @@ class RemoteClusterTranslogService @Inject constructor(private val indicesServic
             op = snapshot.next()
         }
         snapshot.close()
+
         //var sortedOps = ops.sortedBy { it.seqNo() }
-        val sortedOps = ArrayList<Translog.Operation>((toSeqNo - startSeqNo + 3).toInt())
-        sortedOps.addAll(ops)
-        sortedOps.addAll(ops)
+        val sortedOps = ArrayList<Translog.Operation>(opsSize.toInt())
         for(ele in ops) {
             sortedOps[(ele.seqNo() - startSeqNo).toInt()] = ele
         }
 
         log.info("Starting seqno after sorting ${sortedOps[0].seqNo()} and ending seqno ${sortedOps[ops.size-1].seqNo()}")
-        return sortedOps.subList(0, ops.size.coerceAtMost((toSeqNo - startSeqNo + 3).toInt()))
+        return sortedOps.subList(0, ops.size.coerceAtMost((opsSize).toInt()))
     }
 
 }
