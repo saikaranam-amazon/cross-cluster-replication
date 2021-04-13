@@ -67,20 +67,10 @@ index 34891621a04..15317f2b9b7 100644
  
      /**
 diff --git a/server/src/main/java/org/elasticsearch/index/translog/Translog.java b/server/src/main/java/org/elasticsearch/index/translog/Translog.java
-index eba91ab21de..8895d826185 100644
+index eba91ab21de..c6904202624 100644
 --- a/server/src/main/java/org/elasticsearch/index/translog/Translog.java
 +++ b/server/src/main/java/org/elasticsearch/index/translog/Translog.java
-@@ -1663,6 +1663,9 @@ public class Translog extends AbstractIndexShardComponent implements IndexShardC
-      * required generation
-      */
-     public void trimUnreferencedReaders() throws IOException {
-+        final long testSeqNo = getMinReferencedGen();
-+        logger.info("Trimming from 1 - ", Long.toString(testSeqNo));
-+
-         // first check under read lock if any readers can be trimmed
-         try (ReleasableLock ignored = readLock.acquire()) {
-             if (closed.get()) {
-@@ -1682,6 +1685,7 @@ public class Translog extends AbstractIndexShardComponent implements IndexShardC
+@@ -1682,6 +1682,7 @@ public class Translog extends AbstractIndexShardComponent implements IndexShardC
                  return;
              }
              final long minReferencedGen = getMinReferencedGen();

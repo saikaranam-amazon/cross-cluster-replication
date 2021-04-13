@@ -70,6 +70,7 @@ class RemoteClusterTranslogService @Inject constructor(private val indicesServic
 
         //var sortedOps = ops.sortedBy { it.seqNo() }
         val sortedOps = ArrayList<Translog.Operation>(opsSize.toInt())
+        sortedOps.addAll(ops)
         for(ele in ops) {
             sortedOps[(ele.seqNo() - startSeqNo).toInt()] = ele
         }
