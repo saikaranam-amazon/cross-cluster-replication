@@ -89,19 +89,20 @@ index eba91ab21de..8895d826185 100644
                  TranslogReader reader = iterator.next();
                  if (reader.getGeneration() >= minReferencedGen) {
 diff --git a/server/src/main/java/org/elasticsearch/index/translog/TranslogDeletionPolicy.java b/server/src/main/java/org/elasticsearch/index/translog/TranslogDeletionPolicy.java
-index a26b2dc15e9..98200dd2238 100644
+index a26b2dc15e9..14f7fbe139f 100644
 --- a/server/src/main/java/org/elasticsearch/index/translog/TranslogDeletionPolicy.java
 +++ b/server/src/main/java/org/elasticsearch/index/translog/TranslogDeletionPolicy.java
-@@ -22,6 +22,8 @@ package org.elasticsearch.index.translog;
+@@ -22,6 +22,9 @@ package org.elasticsearch.index.translog;
  import org.apache.lucene.util.Counter;
  import org.elasticsearch.Assertions;
  import org.elasticsearch.common.lease.Releasable;
 +import org.elasticsearch.index.seqno.RetentionLease;
++import org.elasticsearch.index.seqno.RetentionLeaseActions;
 +import org.elasticsearch.index.seqno.RetentionLeases;
  import org.elasticsearch.index.seqno.SequenceNumbers;
  
  import java.io.IOException;
-@@ -30,10 +32,12 @@ import java.util.List;
+@@ -30,10 +33,12 @@ import java.util.List;
  import java.util.Map;
  import java.util.concurrent.ConcurrentHashMap;
  import java.util.concurrent.atomic.AtomicBoolean;
@@ -114,7 +115,7 @@ index a26b2dc15e9..98200dd2238 100644
  
      public void assertNoOpenTranslogRefs() {
          if (openTranslogRef.isEmpty() == false) {
-@@ -67,6 +71,19 @@ public class TranslogDeletionPolicy {
+@@ -67,6 +72,19 @@ public class TranslogDeletionPolicy {
          }
      }
  
@@ -134,7 +135,7 @@ index a26b2dc15e9..98200dd2238 100644
      public synchronized void setLocalCheckpointOfSafeCommit(long newCheckpoint) {
          if (newCheckpoint < this.localCheckpointOfSafeCommit) {
              throw new IllegalArgumentException("local checkpoint of the safe commit can't go backwards: " +
-@@ -144,6 +161,7 @@ public class TranslogDeletionPolicy {
+@@ -144,6 +162,7 @@ public class TranslogDeletionPolicy {
          long minByLocks = getMinTranslogGenRequiredByLocks();
          long minByAge = getMinTranslogGenByAge(readers, writer, retentionAgeInMillis, currentTime());
          long minBySize = getMinTranslogGenBySize(readers, writer, retentionSizeInBytes);
@@ -142,7 +143,7 @@ index a26b2dc15e9..98200dd2238 100644
          final long minByAgeAndSize;
          if (minBySize == Long.MIN_VALUE && minByAge == Long.MIN_VALUE) {
              // both size and age are disabled;
-@@ -152,7 +170,27 @@ public class TranslogDeletionPolicy {
+@@ -152,7 +171,30 @@ public class TranslogDeletionPolicy {
              minByAgeAndSize = Math.max(minByAge, minBySize);
          }
          long minByNumFiles = getMinTranslogGenByTotalFiles(readers, writer, retentionTotalFiles);
@@ -160,6 +161,9 @@ index a26b2dc15e9..98200dd2238 100644
 +            .mapToLong(RetentionLease::retainingSequenceNumber)
 +            .min()
 +            .orElse(Long.MAX_VALUE);
++        if(minimumRetainingSequenceNumber == RetentionLeaseActions.RETAIN_ALL && readers.size() > 0) {
++            return readers.get(readers.size()-1).getGeneration();
++        }
 +        for (int i = readers.size() - 1; i >= 0; i--) {
 +            final TranslogReader reader = readers.get(i);
 +            if(reader.getCheckpoint().minSeqNo <= minimumRetainingSequenceNumber &&
