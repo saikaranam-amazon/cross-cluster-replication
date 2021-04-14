@@ -110,6 +110,6 @@ class TranslogSequencerTests : ESTestCase() {
             Translog.Index("_doc", randomAlphaOfLength(10).toLowerCase(Locale.ROOT), seqNo,
                            1L, "{}".toByteArray(Charsets.UTF_8))
         }
-        return Pair(GetChangesResponse(changes, startSeqNo.inc(), startSeqNo), seqNo)
+        return Pair(GetChangesResponse(changes, startSeqNo.inc(), startSeqNo, startSeqNo), seqNo)
     }
 }

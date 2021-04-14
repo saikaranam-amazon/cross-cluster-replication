@@ -1,18 +1,3 @@
-/*
- *   Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *   Licensed under the Apache License, Version 2.0 (the "License").
- *   You may not use this file except in compliance with the License.
- *   A copy of the License is located at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   or in the "license" file accompanying this file. This file is distributed
- *   on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- *   express or implied. See the License for the specific language governing
- *   permissions and limitations under the License.
- */
-
 package com.amazon.elasticsearch.replication.task.shard
 
 import com.amazon.elasticsearch.replication.ReplicationException
@@ -25,7 +10,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.actor
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import org.elasticsearch.client.Client
 import org.elasticsearch.common.logging.Loggers
 import org.elasticsearch.index.shard.ShardId
@@ -54,6 +41,8 @@ class TranslogSequencer(scope: CoroutineScope, private val followerShardId: Shar
     private val log = Loggers.getLogger(javaClass, followerShardId)!!
     private val completed = CompletableDeferred<Unit>()
 
+    private val mutex = Mutex()
+
     // Channel is unlimited capacity as changes can arrive out of order but must be applied in-order.  If the channel
     // had limited capacity it could deadlock.  Instead we use a separate rate limiter Semaphore whose permits are
     // always acquired in order of sequence number to avoid deadlock.
@@ -62,11 +51,11 @@ class TranslogSequencer(scope: CoroutineScope, private val followerShardId: Shar
         // raise the same exception.  See [SendChannel.close] method for details.
         var highWatermark = initialSeqNo
         for (m in channel) {
-            while (unAppliedChanges.containsKey(highWatermark + 1)) {
+            while (checkIfChangesPresentFrom(highWatermark + 1)) {
                 try {
-                    val next = unAppliedChanges.remove(highWatermark + 1)!!
+                    val next = getChangesFrom(highWatermark + 1)
                     val replayRequest = ReplayChangesRequest(followerShardId, next.changes, next.maxSeqNoOfUpdatesOrDeletes,
-                                                             remoteCluster, remoteIndexName)
+                            remoteCluster, remoteIndexName)
                     replayRequest.parentTask = parentTaskId
                     val replayResponse = client.suspendExecute(ReplayChangesAction.INSTANCE, replayRequest)
                     if (replayResponse.shardInfo.failed > 0) {
@@ -77,11 +66,38 @@ class TranslogSequencer(scope: CoroutineScope, private val followerShardId: Shar
                     }
                     highWatermark = next.changes.lastOrNull()?.seqNo() ?: highWatermark
                 } finally {
-                    rateLimiter.release()
+                    log.debug(".");
+                    //rateLimiter.release()
                 }
             }
         }
         completed.complete(Unit)
+    }
+
+    private suspend fun getChangesFrom(seqNo: Long): GetChangesResponse {
+        return unAppliedChanges.remove(seqNo)!!
+        /*
+        mutex.withLock {
+            return unAppliedChanges.remove(seqNo)!!
+        }
+        */
+    }
+
+    private suspend fun checkIfChangesPresentFrom(seqNo: Long): Boolean {
+        return unAppliedChanges.containsKey(seqNo)
+        /*
+        mutex.withLock {
+            return unAppliedChanges.containsKey(seqNo)
+        }
+        */
+    }
+    private suspend fun pushChanges(changes : GetChangesResponse) {
+        unAppliedChanges[changes.fromSeqNo] = changes
+        /*
+        mutex.withLock {
+            unAppliedChanges[changes.fromSeqNo] = changes
+        }
+        */
     }
 
     suspend fun close() {
@@ -90,7 +106,7 @@ class TranslogSequencer(scope: CoroutineScope, private val followerShardId: Shar
     }
 
     suspend fun send(changes : GetChangesResponse) {
-        unAppliedChanges[changes.fromSeqNo] = changes
+        pushChanges(changes)
         sequencer.send(Unit)
     }
 }
