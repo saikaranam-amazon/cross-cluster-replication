@@ -71,7 +71,8 @@ class TranslogSequencer(scope: CoroutineScope, private val followerShardId: Shar
                     }
                     highWatermark = next.changes.lastOrNull()?.seqNo() ?: highWatermark
                 } finally {
-                    rateLimiter.release()
+                    debugLog(".")
+                    //rateLimiter.release()
                 }
             }
         }

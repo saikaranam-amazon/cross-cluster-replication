@@ -19,8 +19,8 @@ class ShardReplicationChangesTracker(clusterService: ClusterService, indexShard:
     private val SLEEP_TIME_BETWEEN_POLL_MS = 50L
     private val mutex = Mutex()
     private val readersPerShard = clusterService.clusterSettings.get(ReplicationPlugin.REPLICATION_PARALLEL_READ_PER_SHARD)
-    private var backupReaders = 0
-    private val rateLimiter = Semaphore(1)
+    private var backupReaders = 1
+    private val rateLimiter = Semaphore(readersPerShard)
     private val missingBatches = Collections.synchronizedList(ArrayList<Pair<Long, Long>>())
     private val observedSeqNoAtLeader = AtomicLong(indexShard.localCheckpoint)
     private val seqNoAlreadyRequested = AtomicLong(indexShard.localCheckpoint)
@@ -30,6 +30,9 @@ class ShardReplicationChangesTracker(clusterService: ClusterService, indexShard:
 
     init {
         clusterService.clusterSettings.addSettingsUpdateConsumer(ReplicationPlugin.REPLICATION_CHANGE_BATCH_SIZE) { batchSize = it }
+        if (readersPerShard == 1) {
+            backupReaders = 0
+        }
     }
 
     suspend fun requestBatchToFetch():Pair<Long, Long> {

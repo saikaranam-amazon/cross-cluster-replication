@@ -141,9 +141,9 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
                     } catch (e: ElasticsearchTimeoutException) {
                         debugLog("Timed out waiting for new changes.")
                         changeTracker.updateBatchFetched(false, fromSeqNo, toSeqNo, fromSeqNo - 1,-1)
-                        rateLimiter.release()
-                    } finally {
                         //rateLimiter.release()
+                    } finally {
+                        rateLimiter.release()
                     }
                 }
                 //Wait just enough for the coroutine to start
