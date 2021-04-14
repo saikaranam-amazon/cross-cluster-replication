@@ -15,6 +15,7 @@
 
 package com.amazon.elasticsearch.replication.action.changes
 
+import com.amazon.elasticsearch.replication.action.repository.GetFileChunkAction
 import com.amazon.elasticsearch.replication.util.completeWith
 import com.amazon.elasticsearch.replication.util.coroutineContext
 import com.amazon.elasticsearch.replication.util.waitForGlobalCheckpoint
@@ -90,7 +91,7 @@ class TransportGetChangesAction @Inject constructor(threadPool: ThreadPool, clus
                         ops.add(op)
                         op = snapshot.next()
                     }
-                    GetChangesResponse(ops, request.fromSeqNo, indexShard.maxSeqNoOfUpdatesOrDeletes, indexShard.lastSyncedGlobalCheckpoint)
+                    GetChangesResponse(ops, request.fromSeqNo, indexShard.maxSeqNoOfUpdatesOrDeletes)
                 }
             }
         }

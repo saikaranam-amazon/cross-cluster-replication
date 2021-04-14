@@ -1,7 +1,21 @@
+/*
+ *   Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License").
+ *   You may not use this file except in compliance with the License.
+ *   A copy of the License is located at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   or in the "license" file accompanying this file. This file is distributed
+ *   on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ *   express or implied. See the License for the specific language governing
+ *   permissions and limitations under the License.
+ */
+
 package com.amazon.elasticsearch.replication.task.shard
 
 import com.amazon.elasticsearch.replication.ReplicationPlugin.Companion.REPLICATION_CHANGE_BATCH_SIZE
-import com.amazon.elasticsearch.replication.ReplicationPlugin.Companion.REPLICATION_PARALLEL_READ_PER_SHARD
 import com.amazon.elasticsearch.replication.action.changes.GetChangesAction
 import com.amazon.elasticsearch.replication.action.changes.GetChangesRequest
 import com.amazon.elasticsearch.replication.action.changes.GetChangesResponse
@@ -11,21 +25,23 @@ import com.amazon.elasticsearch.replication.task.CrossClusterReplicationTask
 import com.amazon.elasticsearch.replication.task.ReplicationState
 import com.amazon.elasticsearch.replication.util.indicesService
 import com.amazon.elasticsearch.replication.util.suspendExecuteWithRetries
+import com.amazon.elasticsearch.replication.util.suspending
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import org.elasticsearch.ElasticsearchTimeoutException
+import org.elasticsearch.action.NoSuchNodeException
+import org.elasticsearch.action.support.IndicesOptions
 import org.elasticsearch.client.Client
 import org.elasticsearch.cluster.ClusterChangedEvent
 import org.elasticsearch.cluster.ClusterStateListener
+import org.elasticsearch.cluster.node.DiscoveryNode
 import org.elasticsearch.cluster.service.ClusterService
 import org.elasticsearch.common.logging.Loggers
 import org.elasticsearch.index.seqno.RetentionLeaseActions
 import org.elasticsearch.index.shard.ShardId
-import org.elasticsearch.index.translog.Translog
+import org.elasticsearch.index.shard.ShardNotFoundException
 import org.elasticsearch.persistent.PersistentTaskState
 import org.elasticsearch.persistent.PersistentTasksNodeService
 import org.elasticsearch.tasks.TaskId
@@ -35,7 +51,7 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
                            params: ShardReplicationParams, executor: String, clusterService: ClusterService,
                            threadPool: ThreadPool, client: Client)
     : CrossClusterReplicationTask(id, type, action, description, parentTask, emptyMap(),
-        executor, clusterService, threadPool, client) {
+                                  executor, clusterService, threadPool, client) {
 
     override val remoteCluster: String = params.remoteCluster
     override val followerIndexName: String = params.followerShardId.indexName
@@ -43,13 +59,11 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
     private val followerShardId = params.followerShardId
     private val remoteClient = client.getRemoteClusterClient(remoteCluster)
     private val retentionLeaseHelper = RemoteClusterRetentionLeaseHelper(clusterService.clusterName.value(), remoteClient)
-    private val clusterStateListenerForTaskInterruption = ClusterStateListenerForTaskInterruption()
-    private val SLEEP_TIME_BETWEEN_POLL_MS = 10L
-    @Volatile private var batchSize = clusterService.clusterSettings.get(REPLICATION_CHANGE_BATCH_SIZE)
-    private var readersPerShard = clusterService.clusterSettings.get(REPLICATION_PARALLEL_READ_PER_SHARD)
-    private var renewLeaseDurationMs = 5000;
 
-        init {
+    private val clusterStateListenerForTaskInterruption = ClusterStateListenerForTaskInterruption()
+
+    @Volatile private var batchSize = clusterService.clusterSettings.get(REPLICATION_CHANGE_BATCH_SIZE)
+    init {
         clusterService.clusterSettings.addSettingsUpdateConsumer(REPLICATION_CHANGE_BATCH_SIZE) { batchSize = it }
     }
 
@@ -57,6 +71,7 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
 
     companion object {
         fun taskIdForShard(shardId: ShardId) = "replication:${shardId}"
+        const val CONCURRENT_REQUEST_RATE_LIMIT = 10
     }
 
     @ObsoleteCoroutinesApi
@@ -91,7 +106,6 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
 
     override fun indicesOrShards() = listOf(followerShardId)
 
-
     @ObsoleteCoroutinesApi
     private suspend fun replicate() {
         updateTaskState(FollowingState)
@@ -101,58 +115,52 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
         val indexShard = followerIndexService.getShard(followerShardId.id)
         // After restore, persisted localcheckpoint is matched with maxSeqNo.
         // Fetch the operations after localCheckpoint from the leader
-        //var seqNo = indexShard.localCheckpoint + 1
-        val rateLimiter = Semaphore(readersPerShard)
-
+        var seqNo = indexShard.localCheckpoint + 1
+        val node = primaryShardNode()
         addListenerToInterruptTask()
-        val sequencer = TranslogSequencer(scope, followerShardId, remoteCluster, remoteShardId.indexName,
-                TaskId(clusterService.nodeName, id), client, rateLimiter, indexShard.localCheckpoint)
-        val changeTracker = ShardReplicationChangesTracker(clusterService, indexShard)
-        var lastLeaseRenewalTime = System.currentTimeMillis()
-        coroutineScope {
-            // TODO: Redesign this to avoid sharing the rateLimiter between this block and the sequencer.
-            // This was done as a stopgap to work around a concurrency bug that needed to be fixed fast.
-            while (scope.isActive) {
-                rateLimiter.acquire()
-                launch {
-                    debugLog("Spawning")
-                    val batchToFetch = changeTracker.requestBatchToFetch()
-                    val fromSeqNo = batchToFetch.first
-                    val toSeqNo = batchToFetch.second
-                    try {
-                        debugLog("Getting changes $fromSeqNo-$toSeqNo")
-                        val changesResponse = getChanges(fromSeqNo, toSeqNo)
-                        sequencer.send(changesResponse)
-                        changeTracker.updateBatchFetched(true, fromSeqNo, toSeqNo, changesResponse.changes.lastOrNull()?.seqNo() ?: fromSeqNo - 1,
-                                changesResponse.lastSyncedGlobalCheckpoint)
-                    } catch (e: ElasticsearchTimeoutException) {
-                        debugLog("Timed out waiting for new changes.")
-                        changeTracker.updateBatchFetched(false, fromSeqNo, toSeqNo, fromSeqNo - 1,-1)
-                    } finally {
-                        rateLimiter.release()
-                    }
-                }
-                //Wait just enough for the coroutine to start
-                //delay(SLEEP_TIME_BETWEEN_POLL_MS)
 
-                //Renew lease after a pre-determined time period.
-                if (System.currentTimeMillis() - lastLeaseRenewalTime > renewLeaseDurationMs) {
-                    val seqNoForRenewal = changeTracker.getSeqNoForLeaseRenewal()
-                    log.info("ankikala: renewing lease to $seqNoForRenewal")
-                    lastLeaseRenewalTime = System.currentTimeMillis()
-                    retentionLeaseHelper.renewRetentionLease(remoteShardId, seqNoForRenewal, followerShardId)
-                }
+        // Not really used yet as we only have one get changes action at a time.
+        val rateLimiter = Semaphore(CONCURRENT_REQUEST_RATE_LIMIT)
+        val sequencer = TranslogSequencer(scope, followerShardId, remoteCluster, remoteShardId.indexName,
+                                          TaskId(clusterService.nodeName, id), client, rateLimiter, seqNo - 1)
+
+        // TODO: Redesign this to avoid sharing the rateLimiter between this block and the sequencer.
+        //       This was done as a stopgap to work around a concurrency bug that needed to be fixed fast.
+        while (scope.isActive) {
+            rateLimiter.acquire()
+            try {
+                val changesResponse = getChanges(node, seqNo)
+                log.info("Got ${changesResponse.changes.size} changes starting from seqNo: $seqNo")
+                sequencer.send(changesResponse)
+                seqNo = changesResponse.changes.lastOrNull()?.seqNo()?.inc() ?: seqNo
+            } catch (e: ElasticsearchTimeoutException) {
+                log.info("Timed out waiting for new changes. Current seqNo: $seqNo")
+                rateLimiter.release()
+                continue
             }
+            retentionLeaseHelper.renewRetentionLease(remoteShardId, seqNo, followerShardId)
         }
         sequencer.close()
     }
 
-    private fun debugLog(msg: String) {
-        log.info("ankikala: ${Thread.currentThread().getName()}: $msg")
+    private suspend fun primaryShardNode(): DiscoveryNode {
+        val clusterStateRequest = remoteClient.admin().cluster().prepareState()
+            .clear()
+            .setIndices(remoteShardId.indexName)
+            .setRoutingTable(true)
+            .setNodes(true)
+            .setIndicesOptions(IndicesOptions.strictSingleIndexNoExpandForbidClosed())
+            .request()
+        val remoteState = suspending(remoteClient.admin().cluster()::state)(clusterStateRequest).state
+        val shardRouting = remoteState.routingNodes.activePrimary(remoteShardId)
+            ?: throw ShardNotFoundException(remoteShardId, "cluster: $remoteCluster")
+        return remoteState.nodes().get(shardRouting.currentNodeId())
+            ?: throw NoSuchNodeException("remote: $remoteCluster:${shardRouting.currentNodeId()}")
     }
 
-    private suspend fun getChanges(fromSeqNo: Long, toSeqNo: Long): GetChangesResponse {
-        val request = GetChangesRequest(remoteShardId, fromSeqNo, toSeqNo)
+    private suspend fun getChanges(remoteNode: DiscoveryNode, fromSeqNo: Long): GetChangesResponse {
+        val remoteClient = client.getRemoteClusterClient(remoteCluster)
+        val request = GetChangesRequest(remoteNode, remoteShardId, fromSeqNo, fromSeqNo + batchSize)
         return remoteClient.suspendExecuteWithRetries(action = GetChangesAction.INSTANCE, req = request, log = log)
     }
 

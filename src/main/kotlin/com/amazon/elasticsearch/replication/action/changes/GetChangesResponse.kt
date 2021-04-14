@@ -22,15 +22,13 @@ import org.elasticsearch.index.translog.Translog
 
 class GetChangesResponse(val changes: List<Translog.Operation>,
                          val fromSeqNo: Long,
-                         val maxSeqNoOfUpdatesOrDeletes: Long,
-                         val lastSyncedGlobalCheckpoint: Long) : ActionResponse() {
+                         val maxSeqNoOfUpdatesOrDeletes: Long) : ActionResponse() {
 
-    constructor(inp: StreamInput) : this(inp.readList(Translog.Operation::readOperation), inp.readVLong(), inp.readLong(), inp.readLong())
+    constructor(inp: StreamInput) : this(inp.readList(Translog.Operation::readOperation), inp.readVLong(), inp.readLong())
 
     override fun writeTo(out: StreamOutput) {
         out.writeCollection(changes, Translog.Operation::writeOperation)
         out.writeVLong(fromSeqNo)
         out.writeLong(maxSeqNoOfUpdatesOrDeletes)
-        out.writeLong(lastSyncedGlobalCheckpoint)
     }
 }

@@ -114,8 +114,6 @@ internal class ReplicationPlugin : Plugin(), ActionPlugin, PersistentTaskPlugin,
             Setting.Property.InternalIndex, Setting.Property.IndexScope)
         val REPLICATION_CHANGE_BATCH_SIZE = Setting.intSetting("opendistro.replication.ops_batch_size", 512, 16,
             Setting.Property.Dynamic, Setting.Property.NodeScope)
-        val REPLICATION_PARALLEL_READ_PER_SHARD = Setting.intSetting("opendistro.replication.parallel_reads_per_shard", 10, 1,
-                Setting.Property.Dynamic, Setting.Property.NodeScope)
     }
 
     override fun createComponents(client: Client, clusterService: ClusterService, threadPool: ThreadPool,
@@ -221,7 +219,7 @@ internal class ReplicationPlugin : Plugin(), ActionPlugin, PersistentTaskPlugin,
     }
 
     override fun getSettings(): List<Setting<*>> {
-        return listOf(REPLICATED_INDEX_SETTING, REPLICATION_CHANGE_BATCH_SIZE, REPLICATION_PARALLEL_READ_PER_SHARD)
+        return listOf(REPLICATED_INDEX_SETTING, REPLICATION_CHANGE_BATCH_SIZE)
     }
 
     override fun getInternalRepositories(env: Environment, namedXContentRegistry: NamedXContentRegistry,
