@@ -24,7 +24,6 @@ import org.elasticsearch.cluster.ClusterChangedEvent
 import org.elasticsearch.cluster.ClusterStateListener
 import org.elasticsearch.cluster.service.ClusterService
 import org.elasticsearch.common.logging.Loggers
-import org.elasticsearch.index.seqno.RetentionLeaseActions
 import org.elasticsearch.index.shard.ShardId
 import org.elasticsearch.index.translog.Translog
 import org.elasticsearch.persistent.PersistentTaskState
@@ -141,8 +140,6 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
                     } catch (e: ElasticsearchTimeoutException) {
                         debugLog("Timed out waiting for new changes.")
                         changeTracker.updateBatchFetched(false, fromSeqNo, toSeqNo, fromSeqNo - 1,-1)
-                        //rateLimiter.release()
-                    } finally {
                         rateLimiter.release()
                     }
                 }
