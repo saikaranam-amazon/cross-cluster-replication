@@ -118,11 +118,9 @@ class TransportReplayChangesAction @Inject constructor(settings: Settings, trans
         request.changes.asSequence().map {
             it.withPrimaryTerm(primaryShard.operationPrimaryTerm)
         }.forEach { op ->
-            /*
             if(primaryShard.maxSeqNoOfUpdatesOrDeletes < request.maxSeqNoOfUpdatesOrDeletes) {
                 primaryShard.advanceMaxSeqNoOfUpdatesOrDeletes(request.maxSeqNoOfUpdatesOrDeletes)
             }
-            */
             var eachOp = op
 
             if(op.opType() == Translog.Operation.Type.INDEX) {
