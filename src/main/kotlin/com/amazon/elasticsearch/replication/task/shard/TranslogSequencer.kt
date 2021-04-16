@@ -10,9 +10,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.actor
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withLock
 import org.elasticsearch.client.Client
 import org.elasticsearch.common.logging.Loggers
 import org.elasticsearch.index.shard.ShardId
@@ -50,17 +50,18 @@ class TranslogSequencer(scope: CoroutineScope, private val followerShardId: Shar
         // Exceptions thrown here will mark the channel as failed and the next attempt to send to the channel will
         // raise the same exception.  See [SendChannel.close] method for details.
         var highWatermark = initialSeqNo
-        for (m in channel) {
-            debugLog("Checking for ${highWatermark + 1}.")
-            debugLog("Queue is ${unAppliedChanges.keys().toList()}")
-            while (checkIfChangesPresentFrom(highWatermark + 1)) {
-                try {
-                    val next = getChangesFrom(highWatermark + 1)
-                    val replayRequest = ReplayChangesRequest(followerShardId, next.changes, next.maxSeqNoOfUpdatesOrDeletes,
-                            remoteCluster, remoteIndexName)
-                    replayRequest.parentTask = parentTaskId
+
+        val replayParallelism = 5
+        val replayChan = Channel<ReplayChangesRequest>(replayParallelism * 2)
+
+        // Creating 'replayParallelism' number of coroutines to parallelly apply changes
+        for (i in 1..replayParallelism) {
+            launch {
+                while(true) {
+                    debugLog("changes to apply fetched, applying now from coroutine number $i")
+                    val replayReq = replayChan.receive()
                     val startTime = System.nanoTime()
-                    val replayResponse = client.suspendExecute(ReplayChangesAction.INSTANCE, replayRequest)
+                    val replayResponse = client.suspendExecute(ReplayChangesAction.INSTANCE, replayReq)
                     val endTime = System.nanoTime()
                     debugLog("ReplayChangesRequest. Total time taken(ms): " + (endTime - startTime)/1000000)
                     if (replayResponse.shardInfo.failed > 0) {
@@ -69,6 +70,24 @@ class TranslogSequencer(scope: CoroutineScope, private val followerShardId: Shar
                         }
                         throw ReplicationException("failed to replay changes", replayResponse.shardInfo.failures)
                     }
+                }
+            }
+        }
+
+        for (m in channel) {
+            debugLog("Checking for ${highWatermark + 1}.")
+            debugLog("Queue is ${unAppliedChanges.keys().toList()}")
+            while (checkIfChangesPresentFrom(highWatermark + 1)) {
+                try {
+                    val startTime = System.nanoTime()
+                    val next = getChangesFrom(highWatermark + 1)
+                    val endTime = System.nanoTime()
+                    debugLog("getChangesFrom. Total time taken(ms): " + (endTime - startTime)/1000000)
+                    val replayRequest = ReplayChangesRequest(followerShardId, next.changes, next.maxSeqNoOfUpdatesOrDeletes,
+                            remoteCluster, remoteIndexName)
+                    replayRequest.parentTask = parentTaskId
+                    debugLog("changes fetched, sent on channel to apply")
+                    replayChan.send(replayRequest)
                     highWatermark = next.changes.lastOrNull()?.seqNo() ?: highWatermark
                 } finally {
                     debugLog(".")
