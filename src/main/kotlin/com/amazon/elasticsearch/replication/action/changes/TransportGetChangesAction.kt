@@ -65,7 +65,7 @@ class TransportGetChangesAction @Inject constructor(threadPool: ThreadPool, clus
 
     @Suppress("BlockingMethodInNonBlockingContext")
     override fun asyncShardOperation(request: GetChangesRequest, shardId: ShardId, listener: ActionListener<GetChangesResponse>) {
-        GlobalScope.launch(threadPool.coroutineContext(ThreadPool.Names.SEARCH)) {
+        GlobalScope.launch(threadPool.coroutineContext(ThreadPool.Names.GENERIC)) {
             // TODO: Figure out if we need to acquire a primary permit here
             listener.completeWith {
                 val indexShard = indicesService.indexServiceSafe(shardId.index).getShard(shardId.id)
