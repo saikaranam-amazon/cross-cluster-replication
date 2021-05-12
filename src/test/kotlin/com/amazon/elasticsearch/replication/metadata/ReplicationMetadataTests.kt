@@ -16,9 +16,9 @@
 package com.amazon.elasticsearch.replication.metadata
 
 import org.assertj.core.api.Assertions.assertThat
-import org.elasticsearch.common.io.stream.BytesStreamOutput
-import org.elasticsearch.test.ESTestCase
-import org.elasticsearch.test.XContentTestUtils
+import org.opensearch.common.io.stream.BytesStreamOutput
+import org.opensearch.test.ESTestCase
+import org.opensearch.test.XContentTestUtils
 
 class ReplicationMetadataTests : ESTestCase() {
 

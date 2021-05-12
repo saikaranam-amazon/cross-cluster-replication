@@ -26,21 +26,21 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.apache.logging.log4j.Logger
-import org.elasticsearch.action.ActionListener
-import org.elasticsearch.action.ActionResponse
-import org.elasticsearch.client.Client
-import org.elasticsearch.cluster.service.ClusterService
-import org.elasticsearch.common.io.stream.StreamOutput
-import org.elasticsearch.common.xcontent.ToXContent
-import org.elasticsearch.common.xcontent.ToXContentObject
-import org.elasticsearch.common.xcontent.XContentBuilder
-import org.elasticsearch.index.shard.ShardId
-import org.elasticsearch.persistent.AllocatedPersistentTask
-import org.elasticsearch.persistent.PersistentTaskState
-import org.elasticsearch.persistent.PersistentTasksService
-import org.elasticsearch.tasks.TaskId
-import org.elasticsearch.tasks.TaskManager
-import org.elasticsearch.threadpool.ThreadPool
+import org.opensearch.action.ActionListener
+import org.opensearch.action.ActionResponse
+import org.opensearch.client.Client
+import org.opensearch.cluster.service.ClusterService
+import org.opensearch.common.io.stream.StreamOutput
+import org.opensearch.common.xcontent.ToXContent
+import org.opensearch.common.xcontent.ToXContentObject
+import org.opensearch.common.xcontent.XContentBuilder
+import org.opensearch.index.shard.ShardId
+import org.opensearch.persistent.AllocatedPersistentTask
+import org.opensearch.persistent.PersistentTaskState
+import org.opensearch.persistent.PersistentTasksService
+import org.opensearch.tasks.TaskId
+import org.opensearch.tasks.TaskManager
+import org.opensearch.threadpool.ThreadPool
 
 abstract class CrossClusterReplicationTask(id: Long, type: String, action: String, description: String, parentTask: TaskId,
                                            headers: Map<String, String>,

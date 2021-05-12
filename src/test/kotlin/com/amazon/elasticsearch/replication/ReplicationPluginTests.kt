@@ -15,7 +15,7 @@
 
 package com.amazon.elasticsearch.replication
 
-import org.elasticsearch.test.ESTestCase
+import org.opensearch.test.ESTestCase
 
 class ReplicationPluginTests : ESTestCase() {
     fun testNothing() {

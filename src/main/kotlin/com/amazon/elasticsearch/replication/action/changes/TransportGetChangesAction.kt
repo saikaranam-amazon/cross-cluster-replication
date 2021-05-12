@@ -21,24 +21,24 @@ import com.amazon.elasticsearch.replication.util.coroutineContext
 import com.amazon.elasticsearch.replication.util.waitForGlobalCheckpoint
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.elasticsearch.ElasticsearchTimeoutException
-import org.elasticsearch.action.ActionListener
-import org.elasticsearch.action.support.ActionFilters
-import org.elasticsearch.action.support.single.shard.TransportSingleShardAction
-import org.elasticsearch.cluster.ClusterState
-import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver
-import org.elasticsearch.cluster.routing.ShardsIterator
-import org.elasticsearch.cluster.service.ClusterService
-import org.elasticsearch.common.inject.Inject
-import org.elasticsearch.common.io.stream.StreamInput
-import org.elasticsearch.common.io.stream.Writeable
-import org.elasticsearch.common.unit.TimeValue
-import org.elasticsearch.index.shard.ShardId
-import org.elasticsearch.index.translog.Translog
-import org.elasticsearch.indices.IndicesService
-import org.elasticsearch.threadpool.ThreadPool
-import org.elasticsearch.transport.TransportActionProxy
-import org.elasticsearch.transport.TransportService
+import org.opensearch.OpenSearchTimeoutException
+import org.opensearch.action.ActionListener
+import org.opensearch.action.support.ActionFilters
+import org.opensearch.action.support.single.shard.TransportSingleShardAction
+import org.opensearch.cluster.ClusterState
+import org.opensearch.cluster.metadata.IndexNameExpressionResolver
+import org.opensearch.cluster.routing.ShardsIterator
+import org.opensearch.cluster.service.ClusterService
+import org.opensearch.common.inject.Inject
+import org.opensearch.common.io.stream.StreamInput
+import org.opensearch.common.io.stream.Writeable
+import org.opensearch.common.unit.TimeValue
+import org.opensearch.index.shard.ShardId
+import org.opensearch.index.translog.Translog
+import org.opensearch.indices.IndicesService
+import org.opensearch.threadpool.ThreadPool
+import org.opensearch.transport.TransportActionProxy
+import org.opensearch.transport.TransportService
 import kotlin.math.min
 
 class TransportGetChangesAction @Inject constructor(threadPool: ThreadPool, clusterService: ClusterService,
@@ -78,7 +78,7 @@ class TransportGetChangesAction @Inject constructor(threadPool: ThreadPool, clus
                     // TODO: Figure out a better way to wait for the global checkpoint to be synced to the translog
                     if (indexShard.lastSyncedGlobalCheckpoint < request.fromSeqNo) {
                         assert(gcp > indexShard.lastSyncedGlobalCheckpoint) { "Checkpoint didn't advance at all" }
-                        throw ElasticsearchTimeoutException("global checkpoint not synced. Retry after a few miliseconds...")
+                        throw OpenSearchTimeoutException("global checkpoint not synced. Retry after a few miliseconds...")
                     }
                 }
 

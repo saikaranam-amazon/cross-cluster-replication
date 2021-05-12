@@ -24,42 +24,43 @@ import com.amazon.elasticsearch.replication.action.repository.ReleaseLeaderResou
 import com.amazon.elasticsearch.replication.util.executeUnderSecurityContext
 import org.apache.logging.log4j.LogManager
 import org.apache.lucene.index.IndexCommit
-import org.elasticsearch.Version
-import org.elasticsearch.action.ActionListener
-import org.elasticsearch.action.ActionRequest
-import org.elasticsearch.action.ActionResponse
-import org.elasticsearch.action.ActionType
-import org.elasticsearch.action.admin.indices.stats.IndicesStatsAction
-import org.elasticsearch.action.admin.indices.stats.IndicesStatsRequest
-import org.elasticsearch.action.support.IndicesOptions
-import org.elasticsearch.client.Client
-import org.elasticsearch.cluster.ClusterState
-import org.elasticsearch.cluster.ClusterStateUpdateTask
-import org.elasticsearch.cluster.metadata.IndexMetadata
-import org.elasticsearch.cluster.metadata.Metadata
-import org.elasticsearch.cluster.metadata.RepositoryMetadata
-import org.elasticsearch.cluster.node.DiscoveryNode
-import org.elasticsearch.cluster.service.ClusterService
-import org.elasticsearch.common.Nullable
-import org.elasticsearch.common.UUIDs
-import org.elasticsearch.common.component.AbstractLifecycleComponent
-import org.elasticsearch.common.metrics.CounterMetric
-import org.elasticsearch.common.settings.Settings
-import org.elasticsearch.index.mapper.MapperService
-import org.elasticsearch.index.shard.ShardId
-import org.elasticsearch.index.snapshots.IndexShardSnapshotStatus
-import org.elasticsearch.index.store.Store
-import org.elasticsearch.index.store.StoreStats
-import org.elasticsearch.indices.recovery.RecoverySettings
-import org.elasticsearch.indices.recovery.RecoveryState
-import org.elasticsearch.repositories.IndexId
-import org.elasticsearch.repositories.Repository
-import org.elasticsearch.repositories.RepositoryData
-import org.elasticsearch.repositories.RepositoryShardId
-import org.elasticsearch.repositories.ShardGenerations
-import org.elasticsearch.snapshots.SnapshotId
-import org.elasticsearch.snapshots.SnapshotInfo
-import org.elasticsearch.snapshots.SnapshotState
+import org.opensearch.Version
+import org.opensearch.action.ActionListener
+import org.opensearch.action.ActionRequest
+import org.opensearch.action.ActionResponse
+import org.opensearch.action.ActionType
+import org.opensearch.action.admin.indices.stats.IndicesStatsAction
+import org.opensearch.action.admin.indices.stats.IndicesStatsRequest
+import org.opensearch.action.support.IndicesOptions
+import org.opensearch.client.Client
+import org.opensearch.cluster.ClusterState
+import org.opensearch.cluster.ClusterStateUpdateTask
+import org.opensearch.cluster.metadata.IndexMetadata
+import org.opensearch.cluster.metadata.Metadata
+import org.opensearch.cluster.metadata.RepositoryMetadata
+import org.opensearch.cluster.node.DiscoveryNode
+import org.opensearch.cluster.service.ClusterService
+import org.opensearch.common.Nullable
+import org.opensearch.common.UUIDs
+import org.opensearch.common.component.AbstractLifecycleComponent
+import org.opensearch.common.metrics.CounterMetric
+import org.opensearch.common.settings.Settings
+import org.opensearch.common.util.concurrent.ThreadContext
+import org.opensearch.index.mapper.MapperService
+import org.opensearch.index.shard.ShardId
+import org.opensearch.index.snapshots.IndexShardSnapshotStatus
+import org.opensearch.index.store.Store
+import org.opensearch.index.store.StoreStats
+import org.opensearch.indices.recovery.RecoverySettings
+import org.opensearch.indices.recovery.RecoveryState
+import org.opensearch.repositories.IndexId
+import org.opensearch.repositories.Repository
+import org.opensearch.repositories.RepositoryData
+import org.opensearch.repositories.RepositoryShardId
+import org.opensearch.repositories.ShardGenerations
+import org.opensearch.snapshots.SnapshotId
+import org.opensearch.snapshots.SnapshotInfo
+import org.opensearch.snapshots.SnapshotState
 import java.util.UUID
 import java.util.function.Consumer
 import java.util.function.Function
@@ -349,9 +350,14 @@ class RemoteClusterRepository(private val repositoryMetadata: RepositoryMetadata
         val userString = SecurityContext.fromClusterState(clusterService.state(),
                                                         repositoryMetadata.remoteClusterName(),
                                                         followerIndex)
-        remoteClusterClient.threadPool().threadContext.newStoredContext(true).use {
+        var storedContext: ThreadContext.StoredContext? = null
+        try {
+            storedContext = remoteClusterClient.threadPool().threadContext.newStoredContext(true)
             SecurityContext.toThreadContext(remoteClusterClient.threadPool().threadContext, userString)
             return remoteClusterClient.execute(actionType, actionRequest).actionGet(REMOTE_CLUSTER_REPO_REQ_TIMEOUT_IN_MILLI_SEC)
+        }
+        finally {
+            storedContext?.restore()
         }
     }
 }

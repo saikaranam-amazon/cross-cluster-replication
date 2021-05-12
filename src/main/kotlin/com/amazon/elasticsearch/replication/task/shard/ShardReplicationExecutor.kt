@@ -19,17 +19,17 @@ import com.amazon.elasticsearch.replication.metadata.REPLICATION_OVERALL_STATE_K
 import com.amazon.elasticsearch.replication.metadata.REPLICATION_OVERALL_STATE_RUNNING_VALUE
 import com.amazon.elasticsearch.replication.metadata.getReplicationStateParamsForIndex
 import org.apache.logging.log4j.LogManager
-import org.elasticsearch.ElasticsearchException
-import org.elasticsearch.client.Client
-import org.elasticsearch.cluster.ClusterState
-import org.elasticsearch.cluster.service.ClusterService
-import org.elasticsearch.persistent.AllocatedPersistentTask
-import org.elasticsearch.persistent.PersistentTaskState
-import org.elasticsearch.persistent.PersistentTasksCustomMetadata.Assignment
-import org.elasticsearch.persistent.PersistentTasksCustomMetadata.PersistentTask
-import org.elasticsearch.persistent.PersistentTasksExecutor
-import org.elasticsearch.tasks.TaskId
-import org.elasticsearch.threadpool.ThreadPool
+import org.opensearch.OpenSearchException
+import org.opensearch.client.Client
+import org.opensearch.cluster.ClusterState
+import org.opensearch.cluster.service.ClusterService
+import org.opensearch.persistent.AllocatedPersistentTask
+import org.opensearch.persistent.PersistentTaskState
+import org.opensearch.persistent.PersistentTasksCustomMetadata.Assignment
+import org.opensearch.persistent.PersistentTasksCustomMetadata.PersistentTask
+import org.opensearch.persistent.PersistentTasksExecutor
+import org.opensearch.tasks.TaskId
+import org.opensearch.threadpool.ThreadPool
 
 class ShardReplicationExecutor(executor: String, private val clusterService : ClusterService,
                                private val threadPool: ThreadPool, private val client: Client) :
@@ -44,7 +44,7 @@ class ShardReplicationExecutor(executor: String, private val clusterService : Cl
     override fun validate(params: ShardReplicationParams, clusterState: ClusterState) {
         // Checks that there is a primary shard. Side-effect will check that the index and shard exists.
         clusterState.routingTable.shardRoutingTable(params.followerShardId)
-            .primaryShard() ?: throw ElasticsearchException("no primary shard available for ${params.followerShardId}")
+            .primaryShard() ?: throw OpenSearchException("no primary shard available for ${params.followerShardId}")
         val replicationStateParams = getReplicationStateParamsForIndex(clusterService, params.followerShardId.indexName)
                 ?:
             throw IllegalStateException("Cant find replication details metadata for followIndex:${params.followerShardId.indexName}. " +

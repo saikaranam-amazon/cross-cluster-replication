@@ -15,10 +15,10 @@
 
 package com.amazon.elasticsearch.replication.util
 
-import org.elasticsearch.common.component.AbstractLifecycleComponent
-import org.elasticsearch.common.inject.Inject
-import org.elasticsearch.indices.IndicesService
-import org.elasticsearch.persistent.PersistentTasksService
+import org.opensearch.common.component.AbstractLifecycleComponent
+import org.opensearch.common.inject.Inject
+import org.opensearch.indices.IndicesService
+import org.opensearch.persistent.PersistentTasksService
 
 lateinit var indicesService: IndicesService
 lateinit var persistentTasksService: PersistentTasksService

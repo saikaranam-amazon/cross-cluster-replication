@@ -15,17 +15,17 @@
 
 package com.amazon.elasticsearch.replication
 
-import org.elasticsearch.ElasticsearchException
-import org.elasticsearch.action.ShardOperationFailedException
-import org.elasticsearch.cluster.metadata.IndexMetadata.INDEX_UUID_NA_VALUE
-import org.elasticsearch.index.shard.ShardId
+import org.opensearch.OpenSearchException
+import org.opensearch.action.ShardOperationFailedException
+import org.opensearch.cluster.metadata.IndexMetadata.INDEX_UUID_NA_VALUE
+import org.opensearch.index.shard.ShardId
 
 /**
  * Base class replication exceptions. Note: Replication process may throw exceptions that do not derive from this such as
- * [org.elasticsearch.ResourceAlreadyExistsException], [org.elasticsearch.index.IndexNotFoundException] or
- * [org.elasticsearch.index.shard.ShardNotFoundException].
+ * [org.opensearch.ResourceAlreadyExistsException], [org.opensearch.index.IndexNotFoundException] or
+ * [org.opensearch.index.shard.ShardNotFoundException].
  */
-class ReplicationException: ElasticsearchException {
+class ReplicationException: OpenSearchException {
 
     constructor(message: String, vararg args: Any) : super(message, *args)
 

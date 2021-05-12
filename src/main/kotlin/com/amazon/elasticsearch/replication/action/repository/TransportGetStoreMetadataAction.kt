@@ -17,19 +17,19 @@ package com.amazon.elasticsearch.replication.action.repository
 
 import com.amazon.elasticsearch.replication.repository.RemoteClusterRestoreLeaderService
 import org.apache.logging.log4j.LogManager
-import org.elasticsearch.action.support.ActionFilters
-import org.elasticsearch.action.support.single.shard.TransportSingleShardAction
-import org.elasticsearch.cluster.ClusterState
-import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver
-import org.elasticsearch.cluster.routing.ShardsIterator
-import org.elasticsearch.cluster.service.ClusterService
-import org.elasticsearch.common.inject.Inject
-import org.elasticsearch.common.io.stream.StreamInput
-import org.elasticsearch.common.io.stream.Writeable
-import org.elasticsearch.index.shard.ShardId
-import org.elasticsearch.threadpool.ThreadPool
-import org.elasticsearch.transport.TransportActionProxy
-import org.elasticsearch.transport.TransportService
+import org.opensearch.action.support.ActionFilters
+import org.opensearch.action.support.single.shard.TransportSingleShardAction
+import org.opensearch.cluster.ClusterState
+import org.opensearch.cluster.metadata.IndexNameExpressionResolver
+import org.opensearch.cluster.routing.ShardsIterator
+import org.opensearch.cluster.service.ClusterService
+import org.opensearch.common.inject.Inject
+import org.opensearch.common.io.stream.StreamInput
+import org.opensearch.common.io.stream.Writeable
+import org.opensearch.index.shard.ShardId
+import org.opensearch.threadpool.ThreadPool
+import org.opensearch.transport.TransportActionProxy
+import org.opensearch.transport.TransportService
 
 class TransportGetStoreMetadataAction @Inject constructor(threadPool: ThreadPool, clusterService: ClusterService,
                                                           transportService: TransportService, actionFilters: ActionFilters,

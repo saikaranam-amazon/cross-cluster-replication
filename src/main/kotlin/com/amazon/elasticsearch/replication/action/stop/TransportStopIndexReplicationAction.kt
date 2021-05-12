@@ -31,30 +31,30 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.apache.logging.log4j.LogManager
-import org.elasticsearch.ElasticsearchException
-import org.elasticsearch.action.ActionListener
-import org.elasticsearch.action.admin.indices.close.CloseIndexRequest
-import org.elasticsearch.action.admin.indices.open.OpenIndexRequest
-import org.elasticsearch.action.support.ActionFilters
-import org.elasticsearch.action.support.master.AcknowledgedResponse
-import org.elasticsearch.action.support.master.TransportMasterNodeAction
-import org.elasticsearch.client.Client
-import org.elasticsearch.cluster.AckedClusterStateUpdateTask
-import org.elasticsearch.cluster.ClusterState
-import org.elasticsearch.cluster.RestoreInProgress
-import org.elasticsearch.cluster.block.ClusterBlockException
-import org.elasticsearch.cluster.block.ClusterBlockLevel
-import org.elasticsearch.cluster.block.ClusterBlocks
-import org.elasticsearch.cluster.metadata.IndexMetadata
-import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver
-import org.elasticsearch.cluster.metadata.Metadata
-import org.elasticsearch.cluster.service.ClusterService
-import org.elasticsearch.common.inject.Inject
-import org.elasticsearch.common.io.stream.StreamInput
-import org.elasticsearch.common.settings.Settings
-import org.elasticsearch.index.IndexNotFoundException
-import org.elasticsearch.threadpool.ThreadPool
-import org.elasticsearch.transport.TransportService
+import org.opensearch.OpenSearchException
+import org.opensearch.action.ActionListener
+import org.opensearch.action.admin.indices.close.CloseIndexRequest
+import org.opensearch.action.admin.indices.open.OpenIndexRequest
+import org.opensearch.action.support.ActionFilters
+import org.opensearch.action.support.master.AcknowledgedResponse
+import org.opensearch.action.support.master.TransportMasterNodeAction
+import org.opensearch.client.Client
+import org.opensearch.cluster.AckedClusterStateUpdateTask
+import org.opensearch.cluster.ClusterState
+import org.opensearch.cluster.RestoreInProgress
+import org.opensearch.cluster.block.ClusterBlockException
+import org.opensearch.cluster.block.ClusterBlockLevel
+import org.opensearch.cluster.block.ClusterBlocks
+import org.opensearch.cluster.metadata.IndexMetadata
+import org.opensearch.cluster.metadata.IndexNameExpressionResolver
+import org.opensearch.cluster.metadata.Metadata
+import org.opensearch.cluster.service.ClusterService
+import org.opensearch.common.inject.Inject
+import org.opensearch.common.io.stream.StreamInput
+import org.opensearch.common.settings.Settings
+import org.opensearch.index.IndexNotFoundException
+import org.opensearch.threadpool.ThreadPool
+import org.opensearch.transport.TransportService
 import java.io.IOException
 
 class TransportStopIndexReplicationAction @Inject constructor(transportService: TransportService,
@@ -99,14 +99,14 @@ class TransportStopIndexReplicationAction @Inject constructor(transportService: 
                         state.routingTable.hasIndex(request.indexName)) {
                     val closeResponse = suspending(client.admin().indices()::close)(CloseIndexRequest(request.indexName))
                     if (!closeResponse.isAcknowledged) {
-                        throw ElasticsearchException("Unable to close index: ${request.indexName}")
+                        throw OpenSearchException("Unable to close index: ${request.indexName}")
                     }
                 }
 
                 val stateUpdateResponse : AcknowledgedResponse =
                     clusterService.waitForClusterStateUpdate("stop_replication") { l -> StopReplicationTask(request, l)}
                 if (!stateUpdateResponse.isAcknowledged) {
-                    throw ElasticsearchException("Failed to update cluster state")
+                    throw OpenSearchException("Failed to update cluster state")
                 }
 
                 // Index will be deleted if stop is called while it is restoring.  So no need to reopen
@@ -114,7 +114,7 @@ class TransportStopIndexReplicationAction @Inject constructor(transportService: 
                         state.routingTable.hasIndex(request.indexName)) {
                     val reopenResponse = suspending(client.admin().indices()::open)(OpenIndexRequest(request.indexName))
                     if (!reopenResponse.isAcknowledged) {
-                        throw ElasticsearchException("Failed to reopen index: ${request.indexName}")
+                        throw OpenSearchException("Failed to reopen index: ${request.indexName}")
                     }
                 }
                 AcknowledgedResponse(true)

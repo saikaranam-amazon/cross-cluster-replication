@@ -19,21 +19,21 @@ import com.amazon.elasticsearch.replication.action.repository.RemoteClusterRepos
 import com.amazon.elasticsearch.replication.seqno.RemoteClusterRetentionLeaseHelper
 import com.amazon.elasticsearch.replication.task.shard.ShardReplicationTask
 import com.amazon.elasticsearch.replication.util.performOp
-import org.elasticsearch.ElasticsearchException
-import org.elasticsearch.action.support.single.shard.SingleShardRequest
-import org.elasticsearch.client.node.NodeClient
-import org.elasticsearch.common.component.AbstractLifecycleComponent
-import org.elasticsearch.common.inject.Inject
-import org.elasticsearch.common.inject.Singleton
-import org.elasticsearch.common.lucene.store.InputStreamIndexInput
-import org.elasticsearch.core.internal.io.IOUtils
-import org.elasticsearch.index.engine.Engine
-import org.elasticsearch.index.seqno.RetentionLeaseActions
-import org.elasticsearch.index.seqno.SequenceNumbers
-import org.elasticsearch.index.shard.IndexShard
-import org.elasticsearch.index.shard.ShardId
-import org.elasticsearch.index.store.Store
-import org.elasticsearch.indices.IndicesService
+import org.opensearch.OpenSearchException
+import org.opensearch.action.support.single.shard.SingleShardRequest
+import org.opensearch.client.node.NodeClient
+import org.opensearch.common.component.AbstractLifecycleComponent
+import org.opensearch.common.inject.Inject
+import org.opensearch.common.inject.Singleton
+import org.opensearch.common.lucene.store.InputStreamIndexInput
+import org.opensearch.core.internal.io.IOUtils
+import org.opensearch.index.engine.Engine
+import org.opensearch.index.seqno.RetentionLeaseActions
+import org.opensearch.index.seqno.SequenceNumbers
+import org.opensearch.index.shard.IndexShard
+import org.opensearch.index.shard.ShardId
+import org.opensearch.index.store.Store
+import org.opensearch.indices.IndicesService
 import java.io.Closeable
 import java.io.IOException
 
@@ -79,7 +79,7 @@ class RemoteClusterRestoreLeaderService @Inject constructor(private val indicesS
                                                      fileName: String,
                                                      length: Long): InputStreamIndexInput {
         val leaderIndexShard = indicesService.getShardOrNull(request.leaderShardId)
-                ?: throw ElasticsearchException("Shard [$request.leaderShardId] missing")
+                ?: throw OpenSearchException("Shard [$request.leaderShardId] missing")
         val store = leaderIndexShard.store()
         val restoreContext = getRemoteClusterRestore(restoreUUID)
         val indexInput = restoreContext.openInput(store, fileName)
@@ -95,7 +95,7 @@ class RemoteClusterRestoreLeaderService @Inject constructor(private val indicesS
     private fun <T : SingleShardRequest<T>?> constructRestoreContext(restoreUUID: String,
                                         request: RemoteClusterRepositoryRequest<T>): RestoreContext {
         val leaderIndexShard = indicesService.getShardOrNull(request.leaderShardId)
-                ?: throw ElasticsearchException("Shard [$request.leaderShardId] missing")
+                ?: throw OpenSearchException("Shard [$request.leaderShardId] missing")
         // Passing nodeclient of the leader to acquire the retention lease on leader shard
         val retentionLeaseHelper = RemoteClusterRetentionLeaseHelper(request.followerCluster, nodeClient)
         /**

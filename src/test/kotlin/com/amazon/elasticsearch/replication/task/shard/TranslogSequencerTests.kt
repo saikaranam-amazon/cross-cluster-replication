@@ -24,17 +24,17 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.test.runBlockingTest
 import org.assertj.core.api.Assertions.assertThat
-import org.elasticsearch.action.ActionListener
-import org.elasticsearch.action.ActionRequest
-import org.elasticsearch.action.ActionResponse
-import org.elasticsearch.action.ActionType
-import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo
-import org.elasticsearch.index.shard.ShardId
-import org.elasticsearch.index.translog.Translog
-import org.elasticsearch.tasks.TaskId.EMPTY_TASK_ID
-import org.elasticsearch.test.ESTestCase
-import org.elasticsearch.test.ESTestCase.randomList
-import org.elasticsearch.test.client.NoOpClient
+import org.opensearch.action.ActionListener
+import org.opensearch.action.ActionRequest
+import org.opensearch.action.ActionResponse
+import org.opensearch.action.ActionType
+import org.opensearch.action.support.replication.ReplicationResponse.ShardInfo
+import org.opensearch.index.shard.ShardId
+import org.opensearch.index.translog.Translog
+import org.opensearch.tasks.TaskId.EMPTY_TASK_ID
+import org.opensearch.test.ESTestCase
+import org.opensearch.test.ESTestCase.randomList
+import org.opensearch.test.client.NoOpClient
 import java.util.Locale
 
 @ObsoleteCoroutinesApi

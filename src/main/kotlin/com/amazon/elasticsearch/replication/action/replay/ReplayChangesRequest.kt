@@ -15,11 +15,11 @@
 
 package com.amazon.elasticsearch.replication.action.replay
 
-import org.elasticsearch.action.support.replication.ReplicatedWriteRequest
-import org.elasticsearch.common.io.stream.StreamInput
-import org.elasticsearch.common.io.stream.StreamOutput
-import org.elasticsearch.index.shard.ShardId
-import org.elasticsearch.index.translog.Translog
+import org.opensearch.action.support.replication.ReplicatedWriteRequest
+import org.opensearch.common.io.stream.StreamInput
+import org.opensearch.common.io.stream.StreamOutput
+import org.opensearch.index.shard.ShardId
+import org.opensearch.index.translog.Translog
 
 class ReplayChangesRequest : ReplicatedWriteRequest<ReplayChangesRequest> {
 

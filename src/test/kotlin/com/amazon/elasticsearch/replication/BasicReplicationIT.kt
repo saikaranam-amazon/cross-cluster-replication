@@ -18,13 +18,13 @@ package com.amazon.elasticsearch.replication
 import com.amazon.elasticsearch.replication.MultiClusterAnnotations.ClusterConfiguration
 import com.amazon.elasticsearch.replication.MultiClusterAnnotations.ClusterConfigurations
 import org.assertj.core.api.Assertions.assertThat
-import org.elasticsearch.ElasticsearchStatusException
-import org.elasticsearch.action.DocWriteResponse.Result
-import org.elasticsearch.action.get.GetRequest
-import org.elasticsearch.action.index.IndexRequest
-import org.elasticsearch.client.RequestOptions
-import org.elasticsearch.client.indices.CreateIndexRequest
-import org.elasticsearch.test.ESTestCase.assertBusy
+import org.opensearch.OpenSearchStatusException
+import org.opensearch.action.DocWriteResponse.Result
+import org.opensearch.action.get.GetRequest
+import org.opensearch.action.index.IndexRequest
+import org.opensearch.client.RequestOptions
+import org.opensearch.client.indices.CreateIndexRequest
+import org.opensearch.test.ESTestCase.assertBusy
 import org.junit.Assert
 import java.util.Locale
 

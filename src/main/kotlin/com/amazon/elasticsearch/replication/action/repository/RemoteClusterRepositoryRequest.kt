@@ -15,12 +15,12 @@
 
 package com.amazon.elasticsearch.replication.action.repository
 
-import org.elasticsearch.action.support.single.shard.SingleShardRequest
-import org.elasticsearch.cluster.node.DiscoveryNode
-import org.elasticsearch.common.io.stream.StreamInput
-import org.elasticsearch.common.io.stream.StreamOutput
-import org.elasticsearch.index.shard.ShardId
-import org.elasticsearch.transport.RemoteClusterAwareRequest
+import org.opensearch.action.support.single.shard.SingleShardRequest
+import org.opensearch.cluster.node.DiscoveryNode
+import org.opensearch.common.io.stream.StreamInput
+import org.opensearch.common.io.stream.StreamOutput
+import org.opensearch.index.shard.ShardId
+import org.opensearch.transport.RemoteClusterAwareRequest
 
 abstract class RemoteClusterRepositoryRequest<T : SingleShardRequest<T>?>:
         SingleShardRequest<T>, RemoteClusterAwareRequest {

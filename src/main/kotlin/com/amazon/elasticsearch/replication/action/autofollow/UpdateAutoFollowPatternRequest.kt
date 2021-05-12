@@ -15,13 +15,13 @@
 
 package com.amazon.elasticsearch.replication.action.autofollow
 
-import org.elasticsearch.action.ActionRequestValidationException
-import org.elasticsearch.action.support.master.AcknowledgedRequest
-import org.elasticsearch.common.io.stream.StreamInput
-import org.elasticsearch.common.io.stream.StreamOutput
-import org.elasticsearch.common.xcontent.XContentParser
-import org.elasticsearch.common.xcontent.XContentParser.Token
-import org.elasticsearch.common.xcontent.XContentParserUtils.ensureExpectedToken
+import org.opensearch.action.ActionRequestValidationException
+import org.opensearch.action.support.master.AcknowledgedRequest
+import org.opensearch.common.io.stream.StreamInput
+import org.opensearch.common.io.stream.StreamOutput
+import org.opensearch.common.xcontent.XContentParser
+import org.opensearch.common.xcontent.XContentParser.Token
+import org.opensearch.common.xcontent.XContentParserUtils.ensureExpectedToken
 
 class UpdateAutoFollowPatternRequest: AcknowledgedRequest<UpdateAutoFollowPatternRequest> {
 

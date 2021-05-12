@@ -15,7 +15,7 @@
 
 package com.amazon.elasticsearch.replication.action.repository
 
-import org.elasticsearch.action.ActionType
+import org.opensearch.action.ActionType
 
 class GetStoreMetadataAction private constructor() : ActionType<GetStoreMetadataResponse>(NAME, ::GetStoreMetadataResponse) {
     companion object {

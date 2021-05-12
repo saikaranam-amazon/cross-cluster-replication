@@ -28,14 +28,14 @@ import org.apache.http.HttpStatus
 import org.apache.http.entity.ContentType
 import org.apache.http.nio.entity.NStringEntity
 import org.assertj.core.api.Assertions
-import org.elasticsearch.client.Request
-import org.elasticsearch.client.RequestOptions
-import org.elasticsearch.client.ResponseException
-import org.elasticsearch.client.RestHighLevelClient
-import org.elasticsearch.client.indices.CreateIndexRequest
-import org.elasticsearch.client.indices.GetIndexRequest
-import org.elasticsearch.common.unit.TimeValue
-import org.elasticsearch.tasks.TaskInfo
+import org.opensearch.client.Request
+import org.opensearch.client.RequestOptions
+import org.opensearch.client.ResponseException
+import org.opensearch.client.RestHighLevelClient
+import org.opensearch.client.indices.CreateIndexRequest
+import org.opensearch.client.indices.GetIndexRequest
+import org.opensearch.common.unit.TimeValue
+import org.opensearch.tasks.TaskInfo
 import java.util.Locale
 
 import java.util.concurrent.TimeUnit

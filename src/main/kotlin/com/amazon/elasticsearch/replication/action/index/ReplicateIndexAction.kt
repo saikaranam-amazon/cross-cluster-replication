@@ -15,7 +15,7 @@
 
 package com.amazon.elasticsearch.replication.action.index
 
-import org.elasticsearch.action.ActionType
+import org.opensearch.action.ActionType
 
 class ReplicateIndexAction private constructor(): ActionType<ReplicateIndexResponse>(NAME, ::ReplicateIndexResponse) {
     companion object {

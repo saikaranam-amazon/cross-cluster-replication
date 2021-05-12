@@ -15,9 +15,9 @@
 
 package com.amazon.elasticsearch.replication.action.replay
 
-import org.elasticsearch.action.support.WriteResponse
-import org.elasticsearch.action.support.replication.ReplicationResponse
-import org.elasticsearch.common.io.stream.StreamInput
+import org.opensearch.action.support.WriteResponse
+import org.opensearch.action.support.replication.ReplicationResponse
+import org.opensearch.common.io.stream.StreamInput
 
 class ReplayChangesResponse : ReplicationResponse, WriteResponse {
 

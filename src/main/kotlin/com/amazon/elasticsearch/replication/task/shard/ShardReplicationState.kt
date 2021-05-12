@@ -16,14 +16,14 @@
 package com.amazon.elasticsearch.replication.task.shard
 
 import com.amazon.elasticsearch.replication.task.ReplicationState
-import org.elasticsearch.common.ParseField
-import org.elasticsearch.common.io.stream.StreamInput
-import org.elasticsearch.common.io.stream.StreamOutput
-import org.elasticsearch.common.xcontent.ObjectParser
-import org.elasticsearch.common.xcontent.ToXContent
-import org.elasticsearch.common.xcontent.XContentBuilder
-import org.elasticsearch.common.xcontent.XContentParser
-import org.elasticsearch.persistent.PersistentTaskState
+import org.opensearch.common.ParseField
+import org.opensearch.common.io.stream.StreamInput
+import org.opensearch.common.io.stream.StreamOutput
+import org.opensearch.common.xcontent.ObjectParser
+import org.opensearch.common.xcontent.ToXContent
+import org.opensearch.common.xcontent.XContentBuilder
+import org.opensearch.common.xcontent.XContentParser
+import org.opensearch.persistent.PersistentTaskState
 import java.io.IOException
 import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException

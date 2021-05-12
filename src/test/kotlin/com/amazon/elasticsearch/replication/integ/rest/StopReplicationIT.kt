@@ -23,22 +23,22 @@ import com.amazon.elasticsearch.replication.stopReplication
 import org.apache.http.util.EntityUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
-import org.elasticsearch.ElasticsearchStatusException
-import org.elasticsearch.action.DocWriteResponse
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest
-import org.elasticsearch.action.admin.indices.flush.FlushRequest
-import org.elasticsearch.action.index.IndexRequest
-import org.elasticsearch.client.Request
-import org.elasticsearch.client.RequestOptions
-import org.elasticsearch.client.ResponseException
-import org.elasticsearch.client.RestHighLevelClient
-import org.elasticsearch.client.indices.CreateIndexRequest
-import org.elasticsearch.client.indices.GetIndexRequest
-import org.elasticsearch.cluster.metadata.IndexMetadata
-import org.elasticsearch.common.settings.Settings
-import org.elasticsearch.common.unit.TimeValue
-import org.elasticsearch.index.mapper.MapperService
-import org.elasticsearch.test.ESTestCase.assertBusy
+import org.opensearch.OpenSearchStatusException
+import org.opensearch.action.DocWriteResponse
+import org.opensearch.action.admin.indices.delete.DeleteIndexRequest
+import org.opensearch.action.admin.indices.flush.FlushRequest
+import org.opensearch.action.index.IndexRequest
+import org.opensearch.client.Request
+import org.opensearch.client.RequestOptions
+import org.opensearch.client.ResponseException
+import org.opensearch.client.RestHighLevelClient
+import org.opensearch.client.indices.CreateIndexRequest
+import org.opensearch.client.indices.GetIndexRequest
+import org.opensearch.cluster.metadata.IndexMetadata
+import org.opensearch.common.settings.Settings
+import org.opensearch.common.unit.TimeValue
+import org.opensearch.index.mapper.MapperService
+import org.opensearch.test.ESTestCase.assertBusy
 import java.util.concurrent.TimeUnit
 
 
@@ -177,8 +177,8 @@ class StopReplicationIT: MultiClusterRestTestCase() {
         assertThatThrownBy {
             followerClient.index(IndexRequest(followerIndexName).id("blocked").source(sourceMap), RequestOptions
                 .DEFAULT)
-        }.isInstanceOf(ElasticsearchStatusException::class.java)
-                .hasMessage("Elasticsearch exception [type=cluster_block_exception, reason=index [$followerIndexName] " +
+        }.isInstanceOf(OpenSearchStatusException::class.java)
+                .hasMessage("OpenSearch exception [type=cluster_block_exception, reason=index [$followerIndexName] " +
                         "blocked by: [FORBIDDEN/1000/index read-only(cross-cluster-replication)];]")
 
         //Stop replication and verify that index is not blocked any more

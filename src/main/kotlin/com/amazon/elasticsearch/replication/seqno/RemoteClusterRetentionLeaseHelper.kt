@@ -17,12 +17,12 @@ package com.amazon.elasticsearch.replication.seqno
 
 import com.amazon.elasticsearch.replication.util.suspendExecute
 import org.apache.logging.log4j.LogManager
-import org.elasticsearch.client.Client
-import org.elasticsearch.common.logging.Loggers
-import org.elasticsearch.index.seqno.RetentionLeaseActions
-import org.elasticsearch.index.seqno.RetentionLeaseAlreadyExistsException
-import org.elasticsearch.index.seqno.RetentionLeaseNotFoundException
-import org.elasticsearch.index.shard.ShardId
+import org.opensearch.client.Client
+import org.opensearch.common.logging.Loggers
+import org.opensearch.index.seqno.RetentionLeaseActions
+import org.opensearch.index.seqno.RetentionLeaseAlreadyExistsException
+import org.opensearch.index.seqno.RetentionLeaseNotFoundException
+import org.opensearch.index.shard.ShardId
 
 class RemoteClusterRetentionLeaseHelper constructor(val followerClusterName: String, val client: Client) {
 

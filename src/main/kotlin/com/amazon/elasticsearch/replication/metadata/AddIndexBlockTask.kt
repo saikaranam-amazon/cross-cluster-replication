@@ -16,18 +16,18 @@
 package com.amazon.elasticsearch.replication.metadata
 
 import com.amazon.elasticsearch.replication.action.index.block.UpdateIndexBlockRequest
-import org.elasticsearch.action.ActionListener
-import org.elasticsearch.action.support.master.AcknowledgedResponse
-import org.elasticsearch.cluster.AckedClusterStateUpdateTask
-import org.elasticsearch.cluster.ClusterState
-import org.elasticsearch.cluster.block.ClusterBlock
-import org.elasticsearch.cluster.block.ClusterBlockException
-import org.elasticsearch.cluster.block.ClusterBlockLevel
-import org.elasticsearch.cluster.block.ClusterBlocks
-import org.elasticsearch.cluster.service.ClusterService
-import org.elasticsearch.common.collect.ImmutableOpenMap
-import org.elasticsearch.index.IndexNotFoundException
-import org.elasticsearch.rest.RestStatus
+import org.opensearch.action.ActionListener
+import org.opensearch.action.support.master.AcknowledgedResponse
+import org.opensearch.cluster.AckedClusterStateUpdateTask
+import org.opensearch.cluster.ClusterState
+import org.opensearch.cluster.block.ClusterBlock
+import org.opensearch.cluster.block.ClusterBlockException
+import org.opensearch.cluster.block.ClusterBlockLevel
+import org.opensearch.cluster.block.ClusterBlocks
+import org.opensearch.cluster.service.ClusterService
+import org.opensearch.common.collect.ImmutableOpenMap
+import org.opensearch.index.IndexNotFoundException
+import org.opensearch.rest.RestStatus
 import java.util.*
 
 

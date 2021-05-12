@@ -24,15 +24,15 @@ import com.amazon.elasticsearch.replication.util.suspendExecute
 import com.amazon.elasticsearch.replication.util.suspending
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import org.elasticsearch.action.admin.indices.get.GetIndexRequest
-import org.elasticsearch.action.support.IndicesOptions
-import org.elasticsearch.client.Client
-import org.elasticsearch.cluster.service.ClusterService
-import org.elasticsearch.common.logging.Loggers
-import org.elasticsearch.common.unit.TimeValue
-import org.elasticsearch.persistent.PersistentTaskState
-import org.elasticsearch.tasks.TaskId
-import org.elasticsearch.threadpool.ThreadPool
+import org.opensearch.action.admin.indices.get.GetIndexRequest
+import org.opensearch.action.support.IndicesOptions
+import org.opensearch.client.Client
+import org.opensearch.cluster.service.ClusterService
+import org.opensearch.common.logging.Loggers
+import org.opensearch.common.unit.TimeValue
+import org.opensearch.persistent.PersistentTaskState
+import org.opensearch.tasks.TaskId
+import org.opensearch.threadpool.ThreadPool
 
 class AutoFollowTask(id: Long, type: String, action: String, description: String, parentTask: TaskId,
                      headers: Map<String, String>,

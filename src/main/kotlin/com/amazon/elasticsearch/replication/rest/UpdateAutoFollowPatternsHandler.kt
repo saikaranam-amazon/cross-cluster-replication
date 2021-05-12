@@ -17,14 +17,14 @@ package com.amazon.elasticsearch.replication.rest
 
 import com.amazon.elasticsearch.replication.action.autofollow.UpdateAutoFollowPatternAction
 import com.amazon.elasticsearch.replication.action.autofollow.UpdateAutoFollowPatternRequest
-import org.elasticsearch.ElasticsearchStatusException
-import org.elasticsearch.client.node.NodeClient
-import org.elasticsearch.rest.BaseRestHandler
-import org.elasticsearch.rest.BaseRestHandler.RestChannelConsumer
-import org.elasticsearch.rest.RestHandler
-import org.elasticsearch.rest.RestRequest
-import org.elasticsearch.rest.RestStatus
-import org.elasticsearch.rest.action.RestToXContentListener
+import org.opensearch.OpenSearchStatusException
+import org.opensearch.client.node.NodeClient
+import org.opensearch.rest.BaseRestHandler
+import org.opensearch.rest.BaseRestHandler.RestChannelConsumer
+import org.opensearch.rest.RestHandler
+import org.opensearch.rest.RestRequest
+import org.opensearch.rest.RestStatus
+import org.opensearch.rest.action.RestToXContentListener
 
 class UpdateAutoFollowPatternsHandler : BaseRestHandler() {
 
@@ -45,7 +45,7 @@ class UpdateAutoFollowPatternsHandler : BaseRestHandler() {
             request.method() == RestRequest.Method.DELETE -> UpdateAutoFollowPatternRequest.Action.REMOVE
             // Should not be reached unless someone updates the restController with a new method but forgets to add it here.
             else ->
-                throw ElasticsearchStatusException("Unsupported method ", RestStatus.METHOD_NOT_ALLOWED, request.method())
+                throw OpenSearchStatusException("Unsupported method ", RestStatus.METHOD_NOT_ALLOWED, request.method())
         }
 
         val updateRequest = UpdateAutoFollowPatternRequest.fromXContent(request.contentParser(), action)

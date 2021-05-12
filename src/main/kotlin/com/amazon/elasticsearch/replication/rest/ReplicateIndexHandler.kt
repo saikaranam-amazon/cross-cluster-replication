@@ -17,13 +17,13 @@ package com.amazon.elasticsearch.replication.rest
 
 import com.amazon.elasticsearch.replication.action.index.ReplicateIndexAction
 import com.amazon.elasticsearch.replication.action.index.ReplicateIndexRequest
-import org.elasticsearch.client.node.NodeClient
-import org.elasticsearch.rest.BaseRestHandler
-import org.elasticsearch.rest.BaseRestHandler.RestChannelConsumer
-import org.elasticsearch.rest.RestChannel
-import org.elasticsearch.rest.RestHandler
-import org.elasticsearch.rest.RestRequest
-import org.elasticsearch.rest.action.RestToXContentListener
+import org.opensearch.client.node.NodeClient
+import org.opensearch.rest.BaseRestHandler
+import org.opensearch.rest.BaseRestHandler.RestChannelConsumer
+import org.opensearch.rest.RestChannel
+import org.opensearch.rest.RestHandler
+import org.opensearch.rest.RestRequest
+import org.opensearch.rest.action.RestToXContentListener
 import java.io.IOException
 
 class ReplicateIndexHandler : BaseRestHandler() {

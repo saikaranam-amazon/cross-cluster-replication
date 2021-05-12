@@ -17,7 +17,7 @@ package com.amazon.elasticsearch.replication
 
 import com.amazon.elasticsearch.replication.MultiClusterAnnotations.ClusterConfiguration
 import org.apache.http.util.EntityUtils
-import org.elasticsearch.client.Request
+import org.opensearch.client.Request
 
 @MultiClusterAnnotations.ClusterConfigurations(
     ClusterConfiguration(clusterName = "leaderCluster"),

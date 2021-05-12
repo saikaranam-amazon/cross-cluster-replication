@@ -15,8 +15,8 @@
 
 package com.amazon.elasticsearch.replication.action.stop
 
-import org.elasticsearch.action.ActionType
-import org.elasticsearch.action.support.master.AcknowledgedResponse
+import org.opensearch.action.ActionType
+import org.opensearch.action.support.master.AcknowledgedResponse
 
 class StopIndexReplicationAction private constructor(): ActionType<AcknowledgedResponse>(NAME, ::AcknowledgedResponse) {
     companion object {

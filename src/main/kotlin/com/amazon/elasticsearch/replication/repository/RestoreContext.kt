@@ -18,10 +18,10 @@ package com.amazon.elasticsearch.replication.repository
 import com.amazon.elasticsearch.replication.util.performOp
 import org.apache.lucene.store.IOContext
 import org.apache.lucene.store.IndexInput
-import org.elasticsearch.ElasticsearchException
-import org.elasticsearch.index.engine.Engine
-import org.elasticsearch.index.shard.IndexShard
-import org.elasticsearch.index.store.Store
+import org.opensearch.OpenSearchException
+import org.opensearch.index.engine.Engine
+import org.opensearch.index.shard.IndexShard
+import org.opensearch.index.store.Store
 import java.io.Closeable
 
 class RestoreContext(val restoreUUID: String,
@@ -36,7 +36,7 @@ class RestoreContext(val restoreUUID: String,
     private val currentFiles = LinkedHashMap<String, IndexInput>(INITIAL_FILE_CACHE_CAPACITY)
 
     fun openInput(store: Store, fileName: String): IndexInput {
-        var currentIndexInput = currentFiles.getOrDefault(fileName, null)
+        var currentIndexInput = currentFiles.get(fileName)
         if(currentIndexInput != null) {
             return currentIndexInput.clone()
         }

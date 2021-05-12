@@ -15,11 +15,11 @@
 
 package com.amazon.elasticsearch.replication.action.repository
 
-import org.elasticsearch.action.ActionResponse
-import org.elasticsearch.common.bytes.BytesReference
-import org.elasticsearch.common.io.stream.StreamInput
-import org.elasticsearch.common.io.stream.StreamOutput
-import org.elasticsearch.index.store.StoreFileMetadata
+import org.opensearch.action.ActionResponse
+import org.opensearch.common.bytes.BytesReference
+import org.opensearch.common.io.stream.StreamInput
+import org.opensearch.common.io.stream.StreamOutput
+import org.opensearch.index.store.StoreFileMetadata
 
 class GetFileChunkResponse : ActionResponse {
 

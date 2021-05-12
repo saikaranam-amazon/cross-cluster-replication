@@ -18,18 +18,18 @@ package com.amazon.elasticsearch.replication
 import com.amazon.elasticsearch.replication.task.index.IndexReplicationExecutor
 import com.amazon.elasticsearch.replication.task.shard.ShardReplicationExecutor
 import org.assertj.core.api.Assertions.assertThat
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest
-import org.elasticsearch.action.admin.cluster.node.tasks.list.ListTasksRequest
-import org.elasticsearch.action.support.master.AcknowledgedResponse
-import org.elasticsearch.client.Request
-import org.elasticsearch.client.RequestOptions
-import org.elasticsearch.client.Response
-import org.elasticsearch.client.RestHighLevelClient
-import org.elasticsearch.common.unit.TimeValue
-import org.elasticsearch.common.xcontent.DeprecationHandler
-import org.elasticsearch.common.xcontent.NamedXContentRegistry
-import org.elasticsearch.common.xcontent.XContentType
-import org.elasticsearch.test.ESTestCase.assertBusy
+import org.opensearch.action.admin.cluster.health.ClusterHealthRequest
+import org.opensearch.action.admin.cluster.node.tasks.list.ListTasksRequest
+import org.opensearch.action.support.master.AcknowledgedResponse
+import org.opensearch.client.Request
+import org.opensearch.client.RequestOptions
+import org.opensearch.client.Response
+import org.opensearch.client.RestHighLevelClient
+import org.opensearch.common.unit.TimeValue
+import org.opensearch.common.xcontent.DeprecationHandler
+import org.opensearch.common.xcontent.NamedXContentRegistry
+import org.opensearch.common.xcontent.XContentType
+import org.opensearch.test.ESTestCase.assertBusy
 import java.util.concurrent.TimeUnit
 
 data class StartReplicationRequest(val remoteClusterAlias: String, val remoteIndex: String, val toIndex: String)

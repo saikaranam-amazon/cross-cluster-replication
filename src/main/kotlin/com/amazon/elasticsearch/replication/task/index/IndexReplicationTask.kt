@@ -36,31 +36,31 @@ import com.amazon.elasticsearch.replication.util.suspendExecute
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import org.elasticsearch.ElasticsearchTimeoutException
-import org.elasticsearch.ResourceNotFoundException
-import org.elasticsearch.action.ActionListener
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest
-import org.elasticsearch.client.Client
-import org.elasticsearch.cluster.ClusterChangedEvent
-import org.elasticsearch.cluster.ClusterState
-import org.elasticsearch.cluster.ClusterStateListener
-import org.elasticsearch.cluster.ClusterStateObserver
-import org.elasticsearch.cluster.RestoreInProgress
-import org.elasticsearch.cluster.service.ClusterService
-import org.elasticsearch.common.io.stream.StreamOutput
-import org.elasticsearch.common.logging.Loggers
-import org.elasticsearch.common.xcontent.ToXContent
-import org.elasticsearch.common.xcontent.ToXContentObject
-import org.elasticsearch.common.xcontent.XContentBuilder
-import org.elasticsearch.index.Index
-import org.elasticsearch.index.shard.ShardId
-import org.elasticsearch.persistent.PersistentTaskState
-import org.elasticsearch.persistent.PersistentTasksCustomMetadata
-import org.elasticsearch.persistent.PersistentTasksCustomMetadata.PersistentTask
-import org.elasticsearch.persistent.PersistentTasksNodeService
-import org.elasticsearch.persistent.PersistentTasksService
-import org.elasticsearch.tasks.TaskId
-import org.elasticsearch.threadpool.ThreadPool
+import org.opensearch.OpenSearchTimeoutException
+import org.opensearch.ResourceNotFoundException
+import org.opensearch.action.ActionListener
+import org.opensearch.action.admin.indices.delete.DeleteIndexRequest
+import org.opensearch.client.Client
+import org.opensearch.cluster.ClusterChangedEvent
+import org.opensearch.cluster.ClusterState
+import org.opensearch.cluster.ClusterStateListener
+import org.opensearch.cluster.ClusterStateObserver
+import org.opensearch.cluster.RestoreInProgress
+import org.opensearch.cluster.service.ClusterService
+import org.opensearch.common.io.stream.StreamOutput
+import org.opensearch.common.logging.Loggers
+import org.opensearch.common.xcontent.ToXContent
+import org.opensearch.common.xcontent.ToXContentObject
+import org.opensearch.common.xcontent.XContentBuilder
+import org.opensearch.index.Index
+import org.opensearch.index.shard.ShardId
+import org.opensearch.persistent.PersistentTaskState
+import org.opensearch.persistent.PersistentTasksCustomMetadata
+import org.opensearch.persistent.PersistentTasksCustomMetadata.PersistentTask
+import org.opensearch.persistent.PersistentTasksNodeService
+import org.opensearch.persistent.PersistentTasksService
+import org.opensearch.tasks.TaskId
+import org.opensearch.threadpool.ThreadPool
 import java.util.function.Predicate
 import java.util.stream.Collectors
 import kotlin.coroutines.resume
@@ -261,7 +261,7 @@ class IndexReplicationTask(id: Long, type: String, action: String, description: 
         while (restore.state() != RestoreInProgress.State.FAILURE && restore.state() != RestoreInProgress.State.SUCCESS) {
             try {
                 cso.waitForNextChange("remote restore finish")
-            } catch(e: ElasticsearchTimeoutException) {
+            } catch(e: OpenSearchTimeoutException) {
                 log.info("Waiting for restore to complete")
             }
             restore = inProgressRestore() ?: throw ResourceNotFoundException("""

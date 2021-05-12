@@ -15,7 +15,7 @@
 
 package com.amazon.elasticsearch.replication.action.replay
 
-import org.elasticsearch.action.ActionType
+import org.opensearch.action.ActionType
 
 class ReplayChangesAction private constructor() : ActionType<ReplayChangesResponse>(NAME, ::ReplayChangesResponse) {
 

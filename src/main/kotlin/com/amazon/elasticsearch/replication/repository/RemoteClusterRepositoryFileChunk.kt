@@ -15,8 +15,8 @@
 
 package com.amazon.elasticsearch.replication.repository
 
-import org.elasticsearch.index.store.StoreFileMetadata
-import org.elasticsearch.indices.recovery.MultiChunkTransfer.ChunkRequest
+import org.opensearch.index.store.StoreFileMetadata
+import org.opensearch.indices.recovery.MultiChunkTransfer.ChunkRequest
 
 class RemoteClusterRepositoryFileChunk constructor(val storeFileMetadata: StoreFileMetadata,
                                                    val offset: Long,

@@ -15,22 +15,22 @@
 
 package com.amazon.elasticsearch.replication.metadata
 
-import org.elasticsearch.Version
-import org.elasticsearch.cluster.DiffableUtils
-import org.elasticsearch.cluster.DiffableUtils.NonDiffableValueSerializer
-import org.elasticsearch.cluster.DiffableUtils.getStringKeySerializer
-import org.elasticsearch.cluster.NamedDiff
-import org.elasticsearch.cluster.metadata.Metadata
-import org.elasticsearch.cluster.service.ClusterService
-import org.elasticsearch.common.io.stream.StreamInput
-import org.elasticsearch.common.io.stream.StreamOutput
-import org.elasticsearch.common.xcontent.ToXContent
-import org.elasticsearch.common.xcontent.XContentBuilder
-import org.elasticsearch.common.xcontent.XContentParser
+import org.opensearch.Version
+import org.opensearch.cluster.DiffableUtils
+import org.opensearch.cluster.DiffableUtils.NonDiffableValueSerializer
+import org.opensearch.cluster.DiffableUtils.getStringKeySerializer
+import org.opensearch.cluster.NamedDiff
+import org.opensearch.cluster.metadata.Metadata
+import org.opensearch.cluster.service.ClusterService
+import org.opensearch.common.io.stream.StreamInput
+import org.opensearch.common.io.stream.StreamOutput
+import org.opensearch.common.xcontent.ToXContent
+import org.opensearch.common.xcontent.XContentBuilder
+import org.opensearch.common.xcontent.XContentParser
 import java.io.IOException
 import java.util.EnumSet
 import kotlin.collections.HashMap
-import org.elasticsearch.cluster.Diff as ESDiff
+import org.opensearch.cluster.Diff as ESDiff
 
 // some descriptive type aliases to make it easier to read the code.
 typealias AutoFollowPatterns = Map<String, AutoFollowPattern> // { pattern name -> pattern }
@@ -220,7 +220,7 @@ data class ReplicationMetadata(val autoFollowPatterns: Map<ClusterAlias, AutoFol
 
     override fun getWriteableName(): String = NAME
 
-    override fun getMinimalSupportedVersion(): Version = Version.V_7_1_0
+    override fun getMinimalSupportedVersion(): Version = Version.V_1_0_0
 
     override fun toXContent(builder: XContentBuilder, params: ToXContent.Params): XContentBuilder {
         builder.startObject(AUTO_FOLLOW_PATTERNS_KEY)

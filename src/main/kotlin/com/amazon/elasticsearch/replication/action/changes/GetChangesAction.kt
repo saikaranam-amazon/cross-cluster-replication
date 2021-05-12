@@ -15,7 +15,7 @@
 
 package com.amazon.elasticsearch.replication.action.changes
 
-import org.elasticsearch.action.ActionType
+import org.opensearch.action.ActionType
 
 class GetChangesAction private constructor() : ActionType<GetChangesResponse>(NAME, ::GetChangesResponse) {
 

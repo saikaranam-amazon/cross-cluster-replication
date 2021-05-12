@@ -15,13 +15,13 @@
 
 package com.amazon.elasticsearch.replication.action.changes
 
-import org.elasticsearch.action.ActionRequestValidationException
-import org.elasticsearch.action.support.single.shard.SingleShardRequest
-import org.elasticsearch.cluster.node.DiscoveryNode
-import org.elasticsearch.common.io.stream.StreamInput
-import org.elasticsearch.common.io.stream.StreamOutput
-import org.elasticsearch.index.shard.ShardId
-import org.elasticsearch.transport.RemoteClusterAwareRequest
+import org.opensearch.action.ActionRequestValidationException
+import org.opensearch.action.support.single.shard.SingleShardRequest
+import org.opensearch.cluster.node.DiscoveryNode
+import org.opensearch.common.io.stream.StreamInput
+import org.opensearch.common.io.stream.StreamOutput
+import org.opensearch.index.shard.ShardId
+import org.opensearch.transport.RemoteClusterAwareRequest
 
 class GetChangesRequest : SingleShardRequest<GetChangesRequest>, RemoteClusterAwareRequest {
 

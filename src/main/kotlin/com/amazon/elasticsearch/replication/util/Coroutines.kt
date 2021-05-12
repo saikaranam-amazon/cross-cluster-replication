@@ -16,27 +16,27 @@
 package com.amazon.elasticsearch.replication.util
 
 import kotlinx.coroutines.*
-import org.elasticsearch.ElasticsearchTimeoutException
-import org.elasticsearch.ExceptionsHelper
-import org.elasticsearch.action.ActionListener
-import org.elasticsearch.action.ActionRequest
-import org.elasticsearch.action.ActionResponse
-import org.elasticsearch.action.ActionType
-import org.elasticsearch.action.support.master.AcknowledgedRequest
-import org.elasticsearch.action.support.master.MasterNodeRequest
-import org.elasticsearch.client.Client
-import org.elasticsearch.client.ElasticsearchClient
-import org.elasticsearch.cluster.*
-import org.elasticsearch.cluster.service.ClusterService
-import org.elasticsearch.common.Priority
-import org.elasticsearch.common.unit.TimeValue
-import org.elasticsearch.common.util.concurrent.ThreadContext
-import org.elasticsearch.index.shard.GlobalCheckpointListeners
-import org.elasticsearch.index.shard.IndexShard
-import org.elasticsearch.persistent.PersistentTaskParams
-import org.elasticsearch.persistent.PersistentTasksCustomMetadata.PersistentTask
-import org.elasticsearch.persistent.PersistentTasksService
-import org.elasticsearch.threadpool.ThreadPool
+import org.opensearch.OpenSearchTimeoutException
+import org.opensearch.ExceptionsHelper
+import org.opensearch.action.ActionListener
+import org.opensearch.action.ActionRequest
+import org.opensearch.action.ActionResponse
+import org.opensearch.action.ActionType
+import org.opensearch.action.support.master.AcknowledgedRequest
+import org.opensearch.action.support.master.MasterNodeRequest
+import org.opensearch.client.Client
+import org.opensearch.client.OpenSearchClient
+import org.opensearch.cluster.*
+import org.opensearch.cluster.service.ClusterService
+import org.opensearch.common.Priority
+import org.opensearch.common.unit.TimeValue
+import org.opensearch.common.util.concurrent.ThreadContext
+import org.opensearch.index.shard.GlobalCheckpointListeners
+import org.opensearch.index.shard.IndexShard
+import org.opensearch.persistent.PersistentTaskParams
+import org.opensearch.persistent.PersistentTasksCustomMetadata.PersistentTask
+import org.opensearch.persistent.PersistentTasksService
+import org.opensearch.threadpool.ThreadPool
 import java.util.concurrent.TimeoutException
 import kotlin.coroutines.*
 
@@ -60,7 +60,7 @@ fun <Req, Resp> suspending(fn: (Req, ActionListener<Resp>) -> Unit): suspend (Re
 }
 
 suspend fun <Req: ActionRequest, Resp: ActionResponse>
-    ElasticsearchClient.suspendExecute(action: ActionType<Resp>, req: Req) : Resp {
+    OpenSearchClient.suspendExecute(action: ActionType<Resp>, req: Req) : Resp {
     return suspendCancellableCoroutine { cont -> execute(action, req, CoroutineActionListener(cont)) }
 }
 
@@ -73,7 +73,7 @@ suspend fun IndexShard.waitForGlobalCheckpoint(waitingForGlobalCheckpoint: Long,
 
             override fun accept(gcp: Long, e: Exception?) {
                 when {
-                    e is TimeoutException -> cont.resumeWithException(ElasticsearchTimeoutException(e.message))
+                    e is TimeoutException -> cont.resumeWithException(OpenSearchTimeoutException(e.message))
                     e != null -> cont.resumeWithException(e)
                     else -> cont.resume(gcp)
                 }
@@ -96,7 +96,7 @@ suspend fun ClusterStateObserver.waitForNextChange(reason: String, predicate: (C
             }
 
             override fun onTimeout(timeout: TimeValue?) {
-                cont.resumeWithException(ElasticsearchTimeoutException("timed out waiting for $reason"))
+                cont.resumeWithException(OpenSearchTimeoutException("timed out waiting for $reason"))
             }
         }, predicate)
     }
@@ -144,9 +144,9 @@ inline fun <T> ActionListener<T>.completeWith(block : () -> T) {
 }
 
 /**
- * Stores and restores the Elasticsearch [ThreadContext] when the coroutine is suspended and resumed.
+ * Stores and restores the OpenSearch [ThreadContext] when the coroutine is suspended and resumed.
  *
- * The implementation is a little confusing because Elasticsearch and Kotlin uses [ThreadContext.stashContext] to
+ * The implementation is a little confusing because OpenSearch and Kotlin uses [ThreadContext.stashContext] to
  * restore the default context.
  *
  * @param threadContext - a [ThreadContext] instance

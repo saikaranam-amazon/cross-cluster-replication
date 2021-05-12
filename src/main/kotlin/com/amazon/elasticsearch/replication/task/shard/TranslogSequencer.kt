@@ -26,11 +26,11 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.actor
 import kotlinx.coroutines.sync.Semaphore
-import org.elasticsearch.client.Client
-import org.elasticsearch.common.logging.Loggers
-import org.elasticsearch.index.shard.ShardId
-import org.elasticsearch.index.translog.Translog
-import org.elasticsearch.tasks.TaskId
+import org.opensearch.client.Client
+import org.opensearch.common.logging.Loggers
+import org.opensearch.index.shard.ShardId
+import org.opensearch.index.translog.Translog
+import org.opensearch.tasks.TaskId
 import java.util.concurrent.ConcurrentHashMap
 
 /**

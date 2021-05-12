@@ -17,8 +17,8 @@ package com.amazon.elasticsearch.replication.util
 
 import com.amazon.elasticsearch.replication.metadata.ReplicationMetadata
 import org.apache.logging.log4j.LogManager
-import org.elasticsearch.cluster.ClusterState
-import org.elasticsearch.common.util.concurrent.ThreadContext
+import org.opensearch.cluster.ClusterState
+import org.opensearch.common.util.concurrent.ThreadContext
 
 interface SecurityContext {
     companion object {

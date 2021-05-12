@@ -30,23 +30,23 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.apache.logging.log4j.LogManager
-import org.elasticsearch.ElasticsearchException
-import org.elasticsearch.ResourceAlreadyExistsException
-import org.elasticsearch.ResourceNotFoundException
-import org.elasticsearch.action.ActionListener
-import org.elasticsearch.action.support.ActionFilters
-import org.elasticsearch.action.support.master.AcknowledgedResponse
-import org.elasticsearch.action.support.master.TransportMasterNodeAction
-import org.elasticsearch.client.node.NodeClient
-import org.elasticsearch.cluster.ClusterState
-import org.elasticsearch.cluster.block.ClusterBlockException
-import org.elasticsearch.cluster.block.ClusterBlockLevel
-import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver
-import org.elasticsearch.cluster.service.ClusterService
-import org.elasticsearch.common.inject.Inject
-import org.elasticsearch.common.io.stream.StreamInput
-import org.elasticsearch.threadpool.ThreadPool
-import org.elasticsearch.transport.TransportService
+import org.opensearch.OpenSearchException
+import org.opensearch.ResourceAlreadyExistsException
+import org.opensearch.ResourceNotFoundException
+import org.opensearch.action.ActionListener
+import org.opensearch.action.support.ActionFilters
+import org.opensearch.action.support.master.AcknowledgedResponse
+import org.opensearch.action.support.master.TransportMasterNodeAction
+import org.opensearch.client.node.NodeClient
+import org.opensearch.cluster.ClusterState
+import org.opensearch.cluster.block.ClusterBlockException
+import org.opensearch.cluster.block.ClusterBlockLevel
+import org.opensearch.cluster.metadata.IndexNameExpressionResolver
+import org.opensearch.cluster.service.ClusterService
+import org.opensearch.common.inject.Inject
+import org.opensearch.common.io.stream.StreamInput
+import org.opensearch.threadpool.ThreadPool
+import org.opensearch.transport.TransportService
 
 class TransportUpdateAutoFollowPatternAction @Inject constructor(
     transportService: TransportService, clusterService: ClusterService, threadPool: ThreadPool,
@@ -92,7 +92,7 @@ class TransportUpdateAutoFollowPatternAction @Inject constructor(
                 }
 
                 if(!response.isAcknowledged) {
-                    throw ElasticsearchException(AUTOFOLLOW_EXCEPTION_GENERIC_STRING)
+                    throw OpenSearchException(AUTOFOLLOW_EXCEPTION_GENERIC_STRING)
                 }
 
                 if (request.action == UpdateAutoFollowPatternRequest.Action.ADD) {
@@ -123,7 +123,7 @@ class TransportUpdateAutoFollowPatternAction @Inject constructor(
             log.warn("Task already started for '$clusterAlias:$patternName'", e)
         } catch (e: Exception) {
             log.error("Failed to start auto follow task for cluster '$clusterAlias:$patternName'", e)
-            throw ElasticsearchException(AUTOFOLLOW_EXCEPTION_GENERIC_STRING)
+            throw OpenSearchException(AUTOFOLLOW_EXCEPTION_GENERIC_STRING)
         }
     }
 
@@ -135,7 +135,7 @@ class TransportUpdateAutoFollowPatternAction @Inject constructor(
             log.warn("Task already stopped for '$clusterAlias:$patternName'", e)
         } catch (e: Exception) {
             log.error("Failed to stop auto follow task for cluster '$clusterAlias:$patternName'", e)
-            throw ElasticsearchException(AUTOFOLLOW_EXCEPTION_GENERIC_STRING)
+            throw OpenSearchException(AUTOFOLLOW_EXCEPTION_GENERIC_STRING)
         }
     }
 }

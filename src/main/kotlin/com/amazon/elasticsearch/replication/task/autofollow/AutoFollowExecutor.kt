@@ -15,14 +15,14 @@
 
 package com.amazon.elasticsearch.replication.task.autofollow
 
-import org.elasticsearch.client.Client
-import org.elasticsearch.cluster.service.ClusterService
-import org.elasticsearch.persistent.AllocatedPersistentTask
-import org.elasticsearch.persistent.PersistentTaskState
-import org.elasticsearch.persistent.PersistentTasksCustomMetadata.PersistentTask
-import org.elasticsearch.persistent.PersistentTasksExecutor
-import org.elasticsearch.tasks.TaskId
-import org.elasticsearch.threadpool.ThreadPool
+import org.opensearch.client.Client
+import org.opensearch.cluster.service.ClusterService
+import org.opensearch.persistent.AllocatedPersistentTask
+import org.opensearch.persistent.PersistentTaskState
+import org.opensearch.persistent.PersistentTasksCustomMetadata.PersistentTask
+import org.opensearch.persistent.PersistentTasksExecutor
+import org.opensearch.tasks.TaskId
+import org.opensearch.threadpool.ThreadPool
 
 class AutoFollowExecutor(executor: String, private val clusterService: ClusterService,
                          private val threadPool: ThreadPool, private val client: Client) :

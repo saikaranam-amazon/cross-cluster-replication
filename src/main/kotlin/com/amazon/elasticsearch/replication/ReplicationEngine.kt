@@ -15,9 +15,9 @@
 
 package com.amazon.elasticsearch.replication
 
-import org.elasticsearch.index.engine.EngineConfig
-import org.elasticsearch.index.engine.InternalEngine
-import org.elasticsearch.index.seqno.SequenceNumbers
+import org.opensearch.index.engine.EngineConfig
+import org.opensearch.index.engine.InternalEngine
+import org.opensearch.index.seqno.SequenceNumbers
 
 class ReplicationEngine(config: EngineConfig) : InternalEngine(config) {
 

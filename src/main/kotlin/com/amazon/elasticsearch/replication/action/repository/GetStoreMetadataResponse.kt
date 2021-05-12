@@ -15,10 +15,10 @@
 
 package com.amazon.elasticsearch.replication.action.repository
 
-import org.elasticsearch.action.ActionResponse
-import org.elasticsearch.common.io.stream.StreamInput
-import org.elasticsearch.common.io.stream.StreamOutput
-import org.elasticsearch.index.store.Store
+import org.opensearch.action.ActionResponse
+import org.opensearch.common.io.stream.StreamInput
+import org.opensearch.common.io.stream.StreamOutput
+import org.opensearch.index.store.Store
 
 class GetStoreMetadataResponse : ActionResponse {
 

@@ -15,12 +15,12 @@
 
 package com.amazon.elasticsearch.replication.task
 
-import org.elasticsearch.common.settings.Settings
-import org.elasticsearch.index.IndexService
-import org.elasticsearch.index.shard.IndexEventListener
-import org.elasticsearch.index.shard.IndexShard
-import org.elasticsearch.index.shard.ShardId
-import org.elasticsearch.indices.cluster.IndicesClusterStateService
+import org.opensearch.common.settings.Settings
+import org.opensearch.index.IndexService
+import org.opensearch.index.shard.IndexEventListener
+import org.opensearch.index.shard.IndexShard
+import org.opensearch.index.shard.ShardId
+import org.opensearch.indices.cluster.IndicesClusterStateService
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 

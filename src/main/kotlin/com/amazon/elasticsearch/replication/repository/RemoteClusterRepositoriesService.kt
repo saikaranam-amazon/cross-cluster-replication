@@ -14,10 +14,10 @@
  */
 
 package com.amazon.elasticsearch.replication.repository
-import org.elasticsearch.cluster.service.ClusterService
-import org.elasticsearch.common.settings.ClusterSettings
-import org.elasticsearch.repositories.RepositoriesService
-import org.elasticsearch.transport.SniffConnectionStrategy.REMOTE_CLUSTER_SEEDS
+import org.opensearch.cluster.service.ClusterService
+import org.opensearch.common.settings.ClusterSettings
+import org.opensearch.repositories.RepositoriesService
+import org.opensearch.transport.SniffConnectionStrategy.REMOTE_CLUSTER_SEEDS
 import java.util.function.Supplier
 
 class RemoteClusterRepositoriesService(private val repositoriesService: Supplier<RepositoriesService>,

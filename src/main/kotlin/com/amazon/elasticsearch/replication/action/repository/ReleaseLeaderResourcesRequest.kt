@@ -15,10 +15,10 @@
 
 package com.amazon.elasticsearch.replication.action.repository
 
-import org.elasticsearch.action.ActionRequestValidationException
-import org.elasticsearch.cluster.node.DiscoveryNode
-import org.elasticsearch.common.io.stream.StreamInput
-import org.elasticsearch.index.shard.ShardId
+import org.opensearch.action.ActionRequestValidationException
+import org.opensearch.cluster.node.DiscoveryNode
+import org.opensearch.common.io.stream.StreamInput
+import org.opensearch.index.shard.ShardId
 
 class ReleaseLeaderResourcesRequest: RemoteClusterRepositoryRequest<ReleaseLeaderResourcesRequest> {
 

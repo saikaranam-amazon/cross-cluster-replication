@@ -15,17 +15,17 @@
 
 package com.amazon.elasticsearch.replication.action.index.block
 
-import org.elasticsearch.action.ActionRequestValidationException
-import org.elasticsearch.action.IndicesRequest
-import org.elasticsearch.action.support.IndicesOptions
-import org.elasticsearch.action.support.master.AcknowledgedRequest
-import org.elasticsearch.common.ParseField
-import org.elasticsearch.common.io.stream.StreamInput
-import org.elasticsearch.common.io.stream.StreamOutput
-import org.elasticsearch.common.xcontent.ObjectParser
-import org.elasticsearch.common.xcontent.ToXContent
-import org.elasticsearch.common.xcontent.ToXContentObject
-import org.elasticsearch.common.xcontent.XContentBuilder
+import org.opensearch.action.ActionRequestValidationException
+import org.opensearch.action.IndicesRequest
+import org.opensearch.action.support.IndicesOptions
+import org.opensearch.action.support.master.AcknowledgedRequest
+import org.opensearch.common.ParseField
+import org.opensearch.common.io.stream.StreamInput
+import org.opensearch.common.io.stream.StreamOutput
+import org.opensearch.common.xcontent.ObjectParser
+import org.opensearch.common.xcontent.ToXContent
+import org.opensearch.common.xcontent.ToXContentObject
+import org.opensearch.common.xcontent.XContentBuilder
 import java.util.function.Supplier
 
 enum class IndexBlockUpdateType {

@@ -29,16 +29,16 @@ import com.amazon.elasticsearch.replication.util.startTask
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.apache.logging.log4j.LogManager
-import org.elasticsearch.action.ActionListener
-import org.elasticsearch.action.support.master.AcknowledgedRequest
-import org.elasticsearch.action.support.master.AcknowledgedResponse
-import org.elasticsearch.action.support.master.MasterNodeRequest
-import org.elasticsearch.cluster.AckedClusterStateUpdateTask
-import org.elasticsearch.cluster.ClusterState
-import org.elasticsearch.cluster.ClusterStateTaskExecutor
-import org.elasticsearch.cluster.ack.AckedRequest
-import org.elasticsearch.cluster.metadata.Metadata
-import org.elasticsearch.threadpool.ThreadPool
+import org.opensearch.action.ActionListener
+import org.opensearch.action.support.master.AcknowledgedRequest
+import org.opensearch.action.support.master.AcknowledgedResponse
+import org.opensearch.action.support.master.MasterNodeRequest
+import org.opensearch.cluster.AckedClusterStateUpdateTask
+import org.opensearch.cluster.ClusterState
+import org.opensearch.cluster.ClusterStateTaskExecutor
+import org.opensearch.cluster.ack.AckedRequest
+import org.opensearch.cluster.metadata.Metadata
+import org.opensearch.threadpool.ThreadPool
 
 abstract class UpdateReplicationMetadata<T>(request: AckedRequest, listener: ActionListener<T>)
     : AckedClusterStateUpdateTask<T>(request, listener) {

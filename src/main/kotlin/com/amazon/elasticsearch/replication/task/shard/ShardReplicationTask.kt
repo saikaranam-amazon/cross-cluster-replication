@@ -30,22 +30,22 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.sync.Semaphore
-import org.elasticsearch.ElasticsearchTimeoutException
-import org.elasticsearch.action.NoSuchNodeException
-import org.elasticsearch.action.support.IndicesOptions
-import org.elasticsearch.client.Client
-import org.elasticsearch.cluster.ClusterChangedEvent
-import org.elasticsearch.cluster.ClusterStateListener
-import org.elasticsearch.cluster.node.DiscoveryNode
-import org.elasticsearch.cluster.service.ClusterService
-import org.elasticsearch.common.logging.Loggers
-import org.elasticsearch.index.seqno.RetentionLeaseActions
-import org.elasticsearch.index.shard.ShardId
-import org.elasticsearch.index.shard.ShardNotFoundException
-import org.elasticsearch.persistent.PersistentTaskState
-import org.elasticsearch.persistent.PersistentTasksNodeService
-import org.elasticsearch.tasks.TaskId
-import org.elasticsearch.threadpool.ThreadPool
+import org.opensearch.OpenSearchTimeoutException
+import org.opensearch.action.NoSuchNodeException
+import org.opensearch.action.support.IndicesOptions
+import org.opensearch.client.Client
+import org.opensearch.cluster.ClusterChangedEvent
+import org.opensearch.cluster.ClusterStateListener
+import org.opensearch.cluster.node.DiscoveryNode
+import org.opensearch.cluster.service.ClusterService
+import org.opensearch.common.logging.Loggers
+import org.opensearch.index.seqno.RetentionLeaseActions
+import org.opensearch.index.shard.ShardId
+import org.opensearch.index.shard.ShardNotFoundException
+import org.opensearch.persistent.PersistentTaskState
+import org.opensearch.persistent.PersistentTasksNodeService
+import org.opensearch.tasks.TaskId
+import org.opensearch.threadpool.ThreadPool
 
 class ShardReplicationTask(id: Long, type: String, action: String, description: String, parentTask: TaskId,
                            params: ShardReplicationParams, executor: String, clusterService: ClusterService,
@@ -133,7 +133,7 @@ class ShardReplicationTask(id: Long, type: String, action: String, description: 
                 log.info("Got ${changesResponse.changes.size} changes starting from seqNo: $seqNo")
                 sequencer.send(changesResponse)
                 seqNo = changesResponse.changes.lastOrNull()?.seqNo()?.inc() ?: seqNo
-            } catch (e: ElasticsearchTimeoutException) {
+            } catch (e: OpenSearchTimeoutException) {
                 log.info("Timed out waiting for new changes. Current seqNo: $seqNo")
                 rateLimiter.release()
                 continue

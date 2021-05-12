@@ -15,7 +15,7 @@
 
 package com.amazon.elasticsearch.replication
 
-import org.elasticsearch.test.ESIntegTestCase
+import org.opensearch.test.ESIntegTestCase
 
 class ReplicationIntegTestCaseIT : ESIntegTestCase() {
 

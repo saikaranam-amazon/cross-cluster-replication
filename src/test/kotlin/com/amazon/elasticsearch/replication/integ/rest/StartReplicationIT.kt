@@ -25,18 +25,18 @@ import org.apache.http.entity.ContentType
 import org.apache.http.nio.entity.NStringEntity
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
-import org.elasticsearch.action.admin.indices.alias.Alias
-import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest
-import org.elasticsearch.action.admin.indices.settings.get.GetSettingsRequest
-import org.elasticsearch.client.Request
-import org.elasticsearch.client.RequestOptions
-import org.elasticsearch.client.ResponseException
-import org.elasticsearch.client.indices.CreateIndexRequest
-import org.elasticsearch.client.indices.GetIndexRequest
-import org.elasticsearch.client.indices.GetMappingsRequest
-import org.elasticsearch.cluster.metadata.IndexMetadata
-import org.elasticsearch.common.settings.Settings
-import org.elasticsearch.test.ESTestCase.assertBusy
+import org.opensearch.action.admin.indices.alias.Alias
+import org.opensearch.action.admin.indices.alias.get.GetAliasesRequest
+import org.opensearch.action.admin.indices.settings.get.GetSettingsRequest
+import org.opensearch.client.Request
+import org.opensearch.client.RequestOptions
+import org.opensearch.client.ResponseException
+import org.opensearch.client.indices.CreateIndexRequest
+import org.opensearch.client.indices.GetIndexRequest
+import org.opensearch.client.indices.GetMappingsRequest
+import org.opensearch.cluster.metadata.IndexMetadata
+import org.opensearch.common.settings.Settings
+import org.opensearch.test.ESTestCase.assertBusy
 import org.junit.Assert
 
 

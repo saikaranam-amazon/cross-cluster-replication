@@ -16,10 +16,10 @@
 package com.amazon.elasticsearch.replication.action.replicationstatedetails
 
 import com.amazon.elasticsearch.replication.metadata.ReplicationStateParams
-import org.elasticsearch.action.ActionRequestValidationException
-import org.elasticsearch.action.support.master.AcknowledgedRequest
-import org.elasticsearch.common.io.stream.StreamInput
-import org.elasticsearch.common.io.stream.StreamOutput
+import org.opensearch.action.ActionRequestValidationException
+import org.opensearch.action.support.master.AcknowledgedRequest
+import org.opensearch.common.io.stream.StreamInput
+import org.opensearch.common.io.stream.StreamOutput
 
 class UpdateReplicationStateDetailsRequest: AcknowledgedRequest<UpdateReplicationStateDetailsRequest> {
 

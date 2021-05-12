@@ -15,9 +15,9 @@
 
 package com.amazon.elasticsearch.replication.action.index
 
-import org.elasticsearch.action.support.master.AcknowledgedResponse
-import org.elasticsearch.common.io.stream.StreamInput
-import org.elasticsearch.common.io.stream.StreamOutput
+import org.opensearch.action.support.master.AcknowledgedResponse
+import org.opensearch.common.io.stream.StreamInput
+import org.opensearch.common.io.stream.StreamOutput
 
 class ReplicateIndexResponse(acknowledged: Boolean) : AcknowledgedResponse(acknowledged) {
     constructor(inp: StreamInput) : this(inp.readBoolean())
